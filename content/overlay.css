@@ -285,3 +285,41 @@
 .ocr-bubble-header .ocr-bubble-header-buttons>button {
   position: relative;
 }
+
+/* Primary Translate button enhancement */
+.ocr-bubble-actions .ocr-btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border-color: #1d4ed8;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.ocr-bubble-actions .ocr-btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+  border-color: #1e40af;
+}
+
+.ocr-bubble-actions .ocr-btn-primary:active:not(:disabled) {
+  background: #1e40af;
+}
+
+/* External (Google) button pushed to right */
+.ocr-bubble-actions .ocr-btn-external {
+  margin-left: auto;
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.ocr-bubble-actions .ocr-btn-external:hover:not(:disabled) {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+/* Provider label styling */
+.ocr-translation-header .provider {
+  font-weight: 400;
+  font-size: 0.85em;
+  color: #6b7280;
+}

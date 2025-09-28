@@ -31,6 +31,13 @@
     <!-- azure translate specific configuration -->
     <div id="translateConfig" class="vision-config active">
       <label>
+        Translation Provider
+        <select id="translationProvider">
+          <option value="azure">Azure Translator</option>
+          <option value="google">Google Translate</option>
+        </select>
+      </label>
+      <label>
         Azure Translate Endpoint
         <input type="text" id="azureTranslateEndpoint"
           placeholder="https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=en" required />
@@ -43,6 +50,11 @@
         Azure Translate Region
         <input type="text" id="azureTranslateRegion" placeholder="(if required)" />
       </label>
+      <label>
+        Google Translate API Key
+        <input type="password" id="googleTranslateApiKey" placeholder="Paste Google API key" />
+      </label>
+      <p class="note small-note" id="googleKeyNote">Google and Azure key stored only locally (not synced).</p>
     </div>
 
     <!-- general configuration -->

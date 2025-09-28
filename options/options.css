@@ -112,6 +112,44 @@ select {
   color: var(--opt-fg);
 }
 
+/* Disabled field visuals */
+input[disabled],
+select[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(25%);
+}
+
+label:has(> input[disabled]),
+label:has(> select[disabled]) {
+  opacity: 0.7;
+}
+
+/* Fallback for browsers without :has support (most Chromium supports it now, but add a class if needed via JS later) */
+.disabled-field label {
+  opacity: 0.65;
+}
+
+/* Shortcut link / anchor styling for better contrast */
+a {
+  color: var(--opt-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Dark mode tweak: ensure link stands out */
+:root:not([data-theme="light"]) a {
+  color: #5ab8ff;
+}
+
+.small-note {
+  margin-top: -6px;
+  opacity: 0.55;
+}
+
 .actions {
   display: flex;
   align-items: center;
@@ -140,5 +178,5 @@ button:hover {
 .note {
   font-size: 12px;
   opacity: 0.7;
-  margin-top: 30px;
+  margin-top: 16px;
 }

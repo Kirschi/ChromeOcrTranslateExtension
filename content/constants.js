@@ -19,6 +19,8 @@
     AZURE_TRANSLATE_ENDPOINT: 'azureTranslateEndpoint',
     AZURE_TRANSLATE_KEY: 'azureTranslateKey',
     AZURE_TRANSLATE_REGION: 'azureTranslateRegion',
+    TRANSLATION_PROVIDER: 'translationProvider', // 'azure' | 'google'
+    GOOGLE_TRANSLATE_API_KEY: 'googleTranslateApiKey',
     AUTO_TRANSLATE: 'autoTranslate',
     LAST_RESULT: 'lastResult',
     UI_THEME: 'uiTheme',
