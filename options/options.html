@@ -3,44 +3,66 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>OCR Snip Settings</title>
+  <title>Kirschi's OCR Snip Settings</title>
   <link rel="stylesheet" href="options.css" />
+  <link rel="stylesheet" href="toggle.css" />
 </head>
 
 <body>
-  <h1>OCR Snip Settings</h1>
+  <h1>Kirschi's OCR Snip Settings</h1>
   <form id="settingsForm">
-    <div class="azure-only-banner">Local OCR disabled. Azure AI Vision is currently the only OCR provider.</div>
+    <!-- azure vision specific configuration -->
     <div id="visionConfig" class="vision-config active">
       <label>
         Azure Vision Endpoint
-        <input type="text" id="azureVisionEndpoint" placeholder="https://<resource>.cognitiveservices.azure.com" />
+        <input type="text" id="azureVisionEndpoint" placeholder="https://<resource>.cognitiveservices.azure.com"
+          required />
       </label>
       <label>
         Azure Vision Key
-        <input type="password" id="azureVisionKey" />
+        <input type="password" id="azureVisionKey" required />
       </label>
       <label>
         Vision Read Model Version
-        <input type="text" id="azureVisionReadModel" placeholder="2024-02-29-preview" />
+        <input type="text" id="azureVisionReadModel" placeholder="latest" />
       </label>
     </div>
-    <label>
-      Azure Translate Endpoint
-      <input type="text" id="azureTranslateEndpoint"
-        placeholder="https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=en" />
-    </label>
-    <label>
-      Azure Translate Key
-      <input type="password" id="azureTranslateKey" />
-    </label>
-    <label>
-      Azure Translate Region
-      <input type="text" id="azureTranslateRegion" placeholder="(if required)" />
-    </label>
-    <label class="row">
-      <input type="checkbox" id="autoTranslate" /> Auto translate after OCR
-    </label>
+
+    <!-- azure translate specific configuration -->
+    <div id="translateConfig" class="vision-config active">
+      <label>
+        Azure Translate Endpoint
+        <input type="text" id="azureTranslateEndpoint"
+          placeholder="https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=en" required />
+      </label>
+      <label>
+        Azure Translate Key
+        <input type="password" id="azureTranslateKey" required />
+      </label>
+      <label>
+        Azure Translate Region
+        <input type="text" id="azureTranslateRegion" placeholder="(if required)" />
+      </label>
+    </div>
+
+    <!-- general configuration -->
+    <div id="generalConfig" class="vision-config active">
+      <label class="toggle" data-size="md">
+        <input type="checkbox" class="toggle-input" id="autoTranslate" />
+        <span class="toggle-label">Auto translate after OCR</span>
+        <span class="toggle-track" aria-hidden="true"><span class="toggle-thumb"></span></span>
+      </label>
+      <label>
+        Theme
+        <select id="uiTheme">
+          <option value="system">System (auto)</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </label>
+    </div>
+
+    <!-- submit and keyboard shortcut info -->
     <div class="actions">
       <button type="submit">Save</button>
       <span id="status"></span>

@@ -3,6 +3,7 @@ console.log('[OCR SNIP][POPUP] Script evaluated (popup opened) timestamp', Date.
 
 async function init() {
   console.log('[OCR SNIP][POPUP] init');
+  applyTheme();
   document.getElementById('startBtn').addEventListener('click', startSelection);
   document.getElementById('openOptions').addEventListener('click', (e) => {
     e.preventDefault();
@@ -38,3 +39,14 @@ function loadLast() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+function applyTheme() {
+  chrome.storage.sync.get(['uiTheme'], (vals) => {
+    let choice = vals.uiTheme || 'system';
+    if (choice === 'system') {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      choice = mq.matches ? 'dark' : 'light';
+    }
+    document.documentElement.dataset.theme = choice;
+  });
+}

@@ -10,7 +10,6 @@ export const MSG = {
 };
 
 export const STORAGE_KEYS = {
-  BACKEND_OCR_URL: 'backendOcrUrl',
   AZURE_VISION_ENDPOINT: 'azureVisionEndpoint',
   AZURE_VISION_KEY: 'azureVisionKey',
   AZURE_VISION_READ_MODEL: 'azureVisionReadModel',
@@ -18,16 +17,17 @@ export const STORAGE_KEYS = {
   AZURE_TRANSLATE_KEY: 'azureTranslateKey',
   AZURE_TRANSLATE_REGION: 'azureTranslateRegion',
   AUTO_TRANSLATE: 'autoTranslate',
-  LAST_RESULT: 'lastResult'
+  LAST_RESULT: 'lastResult',
+  UI_THEME: 'uiTheme' // 'system' | 'light' | 'dark'
 };
 
 export const DEFAULTS = {
-  backendOcrUrl: 'http://localhost:5000/ocr',
   azureVisionEndpoint: '',
   azureVisionKey: '',
   azureVisionReadModel: 'latest',
   azureTranslateEndpoint: 'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=en',
   azureTranslateKey: '',
   azureTranslateRegion: '',
-  autoTranslate: true
+  autoTranslate: true,
+  uiTheme: 'system'
 };

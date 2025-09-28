@@ -1,10 +1,35 @@
+/* Theme variables */
+:root {
+  --pop-bg: #1e1e1e;
+  --pop-fg: #eee;
+  --pop-fg-dim: #aaa;
+  --pop-surface: #111;
+  --pop-btn-bg: #333;
+  --pop-btn-border: #555;
+  --pop-primary: #4da3ff;
+  --pop-primary-hover: #64b5ff;
+  --pop-link: #64b5ff;
+}
+
+:root[data-theme="light"] {
+  --pop-bg: #ffffff;
+  --pop-fg: #111;
+  --pop-fg-dim: #555;
+  --pop-surface: #f2f6fa;
+  --pop-btn-bg: #f1f3f5;
+  --pop-btn-border: #c7d2dc;
+  --pop-primary: #0b62d6;
+  --pop-primary-hover: #0d74fa;
+  --pop-link: #0d74fa;
+}
+
 body {
   font-family: system-ui, sans-serif;
   margin: 0;
   padding: 10px;
   width: 320px;
-  background: #1e1e1e;
-  color: #eee;
+  background: var(--pop-bg);
+  color: var(--pop-fg);
 }
 
 h1 {
@@ -33,9 +58,9 @@ h1 {
 }
 
 button {
-  background: #333;
-  color: #eee;
-  border: 1px solid #555;
+  background: var(--pop-btn-bg);
+  color: var(--pop-fg);
+  border: 1px solid var(--pop-btn-border);
   padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
@@ -43,18 +68,18 @@ button {
 }
 
 button.primary {
-  background: #4da3ff;
+  background: var(--pop-primary);
   color: #000;
   border: none;
   font-weight: 600;
 }
 
 button.primary:hover {
-  background: #64b5ff;
+  background: var(--pop-primary-hover);
 }
 
 button:hover {
-  background: #444;
+  filter: brightness(1.15);
 }
 
 .result {
@@ -62,7 +87,7 @@ button:hover {
 }
 
 pre {
-  background: #111;
+  background: var(--pop-surface);
   padding: 6px;
   border-radius: 4px;
   max-height: 160px;
@@ -71,7 +96,7 @@ pre {
 }
 
 a {
-  color: #64b5ff;
+  color: var(--pop-link);
   text-decoration: none;
 }
 

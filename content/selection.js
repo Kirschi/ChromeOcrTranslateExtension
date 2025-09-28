@@ -11,7 +11,6 @@ if (!window.__ocrSnipInjected) {
     ERROR: 'ERROR'
   };
   const STORAGE_KEYS = {
-    BACKEND_OCR_URL: 'backendOcrUrl',
     AZURE_VISION_ENDPOINT: 'azureVisionEndpoint',
     AZURE_VISION_KEY: 'azureVisionKey',
     AZURE_VISION_READ_MODEL: 'azureVisionReadModel',
@@ -19,7 +18,8 @@ if (!window.__ocrSnipInjected) {
     AZURE_TRANSLATE_KEY: 'azureTranslateKey',
     AZURE_TRANSLATE_REGION: 'azureTranslateRegion',
     AUTO_TRANSLATE: 'autoTranslate',
-    LAST_RESULT: 'lastResult'
+    LAST_RESULT: 'lastResult',
+    UI_THEME: 'uiTheme'
   };
   window.__ocrSnipInjected = true;
   console.log('[OCR SNIP] Content script injected');
@@ -41,6 +41,7 @@ if (!window.__ocrSnipInjected) {
     console.log('[OCR SNIP] Creating overlay for selection');
     const root = document.createElement('div');
     root.className = 'ocr-snip-overlay-root';
+    applyTheme(root);
 
     const mask = document.createElement('div');
     mask.className = 'ocr-snip-mask';
@@ -58,6 +59,20 @@ if (!window.__ocrSnipInjected) {
     window.addEventListener('mousemove', onMouseMove, true);
     window.addEventListener('mouseup', onMouseUp, true);
     window.addEventListener('keydown', onKeyDown, true);
+  }
+
+  function applyTheme(rootEl) {
+    try {
+      chrome.storage.sync.get(STORAGE_KEYS.UI_THEME, (vals) => {
+        let choice = vals[STORAGE_KEYS.UI_THEME] || 'system';
+        if (choice === 'system') {
+          const mq = window.matchMedia('(prefers-color-scheme: dark)');
+          choice = mq.matches ? 'dark' : 'light';
+        }
+        rootEl.dataset.theme = choice;
+        document.documentElement.dataset.ocrTheme = choice; // for any global CSS variable usage
+      });
+    } catch (_) {/* ignore */ }
   }
 
   function destroyOverlay() {

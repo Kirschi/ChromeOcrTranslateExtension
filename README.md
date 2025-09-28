@@ -1,24 +1,23 @@
 # Chrome OCR Extension
 
-A custom extension that gets the selected snip from the users selection as an image (region snipping). It then sends it to a local OCR service for character recognition. Japanese text, especially vertical ones and from Manga is the priority. The data is then sent to a Azure Translation service. The result is displayed in a small popup inside the browser.
+An MV3 Chrome/Edge extension that lets you draw a region on the current page, performs OCR completely online using **Azure AI Vision (Image Analysis / Read)**, then (optionally) sends the recognized text to **Azure Translator**. The recognized or translated text is overlaid inline in a small, movable bubble. Primary focus: Japanese (including vertical manga text) but it works for any language supported by Azure Vision.
 
 ## Architecture
 
-[Chrome Extension] --(image/snippet)--> [Local Backend API]
-      ↑                                         ↓
-  Overlay translated text <---- (OCR + Translate Result)
+```
+User Selection (content script) --> Screenshot (service worker) --> Crop (content script)
+    --> Azure Vision (Read) OCR --> (Optional) Azure Translator --> Overlay Bubble
+```
 
 ## Current Implementation (Scaffold)
 
 This repository contains a Manifest V3 Chrome extension scaffold that:
 
-1. Lets you start a region selection (via popup button or a keyboard shortcut).
-2. Captures a screenshot of the current tab and crops it to the selected rectangle client-side.
-3. Sends the cropped image (base64 PNG) directly to Azure AI Vision (local backend temporarily disabled).
-4. Optionally (if configured) sends the recognized text to Azure Translator as a second independent call.
-5. Overlays the (translated or original) text near the selection region and stores the last result.
-
-The OCR and translation steps are intentionally decoupled so the backend only needs to provide OCR initially.
+1. Lets you start a region selection (popup button or keyboard shortcut).
+2. Captures a screenshot of the current tab and crops it client‑side to the selected rectangle.
+3. Sends the cropped PNG bytes directly to Azure AI Vision (Image Analysis / Read feature).
+4. Optionally sends the recognized text to Azure Translator (if key + endpoint configured) as a second call.
+5. Overlays the (translated or original) text near the selection and stores the last result in sync storage.
 
 ## File / Module Structure
 
@@ -32,7 +31,7 @@ content/
 popup/
     popup.html/.js/.css       # Popup UI to start selection & show last result
 options/
-    options.html/.js/.css     # Config: OCR endpoint, Azure translate settings, auto-translate toggle
+    options.html/.js/.css     # Config: Azure Vision + Translator settings, auto-translate toggle
 src/
     messages.js               # Message & storage key constants + defaults
 assets/icons/*.png          # Placeholder icons (add real icons later)
@@ -47,7 +46,7 @@ README.md
 | scripting  | Inject content script & CSS on demand for selection |
 | tabs       | Required for `chrome.tabs.captureVisibleTab` screenshot |
 
-`host_permissions` are limited to localhost (OCR service) and Azure Translator endpoints.
+`host_permissions` are limited to Azure Translator endpoints (Vision endpoint domain is covered by user-entered HTTPS URL; no blanket wildcard required unless you prefer to add it). There is no local processing path.
 
 If you later implement the OCR entirely in-page (e.g. WebAssembly) and drop screenshot capture, you may be able to remove or reduce some permissions.
 
@@ -61,11 +60,7 @@ You can customize it via `chrome://extensions/shortcuts`.
 
 Open the extension's options or visit the popup and click "Settings". Fields:
 
-OCR Provider Section:
-* Choose between Local Backend or Azure AI Vision.
-* Local OCR Endpoint URL (default: `http://localhost:5000/ocr`).
-
-Azure AI Vision Section (only shown when Vision selected or key+endpoint provided):
+Azure AI Vision Section:
 * Azure Vision Endpoint (e.g. `https://<resource>.cognitiveservices.azure.com`).
 * Azure Vision Key.
 * Vision Read Model Version (default `2024-02-29-preview`).
@@ -77,12 +72,18 @@ Translation Section:
 
 The last OCR/translation result is stored (shortened) and shown in the popup.
 
-## Local OCR Backend (Temporarily Disabled)
+### Theme Support
 
-Local backend support has been visually and functionally disabled in this build. The manifest no longer includes localhost host permissions. To re-enable later you would:
-1. Re-add localhost host permissions in `manifest.json`.
-2. Restore the local provider UI in `options/options.html`.
-3. Reintroduce fallback logic in `content/selection.js`.
+The extension supports Light, Dark, or System (automatic) theme selection. Choose your preference on the Options page. System mode tracks the browser / OS `prefers-color-scheme` and switches automatically. Themed surfaces include:
+* Options page UI
+* Popup window
+* On‑page selection rectangle & result bubble
+
+Implementation notes: a `uiTheme` key is stored in `chrome.storage.sync`; when set to `system` a runtime media query resolves to light/dark. Styles rely on CSS custom properties (`--*`) so additional themes (e.g. Sepia, High Contrast) can be added by introducing new data-theme blocks.
+
+## Local / Offline OCR
+
+No local or offline OCR path is included. All OCR occurs against Azure Vision. To add a local provider in the future you would introduce a custom endpoint + host permission and branching logic in `content/selection.js`.
 
 ## Azure AI Vision OCR (Enforced Mode)
 
@@ -104,7 +105,7 @@ Model Version: You can override to newer preview GA versions as Azure releases t
 
 Rate Limits: Be mindful of per-second call limits on your pricing tier; rapid selections may hit limits.
 
-Fallback: If Vision key/endpoint missing the extension now errors (local OCR disabled).
+Fallback: If Vision key/endpoint are missing the extension displays an error bubble; no alternate provider exists.
 
 ## Azure Translation Call
 
@@ -160,8 +161,8 @@ If translation fails, the original OCR result is still shown.
 
 ## Security / Privacy Notes
 
-- Images (snips) are sent only to the configured local OCR endpoint.
-- Translation text only (no image) is sent to Azure if enabled.
+- Cropped images are sent only to your configured Azure Vision endpoint over HTTPS.
+- Translation text only (no image) is sent to Azure Translator if enabled.
 - No analytics or external calls beyond the configured endpoints.
 
 ## Troubleshooting
@@ -172,20 +173,6 @@ If translation fails, the original OCR result is still shown.
 | Translation missing | Key/region not set or endpoint incorrect | Verify options page entries |
 | Selection overlay never appears | Content script injection blocked | Reload tab or re-install extension |
 | Screenshot fails | Permission / protected page | Try a normal HTTP(S) page, some chrome:// pages are restricted |
-
-## Minimal Backend Mock (Example)
-
-Node.js Express quick mock (optional):
-```js
-import express from 'express';
-const app = express();
-app.use(express.json({ limit: '10mb' }));
-app.post('/ocr', (req, res) => {
-    // naive fake OCR returning placeholder
-    res.json({ text: 'テスト OCR サンプル' });
-});
-app.listen(5000, () => console.log('OCR mock on :5000'));
-```
 
 ## License
 

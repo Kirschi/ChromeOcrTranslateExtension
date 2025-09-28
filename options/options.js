@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   els.azureVisionKey = document.getElementById('azureVisionKey');
   els.azureVisionReadModel = document.getElementById('azureVisionReadModel');
   els.visionConfig = document.getElementById('visionConfig');
+  els.uiTheme = document.getElementById('uiTheme');
   load();
   els.form.addEventListener('submit', onSave);
   const shortcutLink = document.getElementById('shortcutLink');
@@ -40,6 +41,12 @@ function load() {
     els.azureTranslateKey.value = vals[STORAGE_KEYS.AZURE_TRANSLATE_KEY] || '';
     els.azureTranslateRegion.value = vals[STORAGE_KEYS.AZURE_TRANSLATE_REGION] || '';
     els.autoTranslate.checked = vals[STORAGE_KEYS.AUTO_TRANSLATE] !== false;
+    if (els.uiTheme) {
+      const themeVal = vals[STORAGE_KEYS.UI_THEME] || DEFAULTS.uiTheme || 'system';
+      els.uiTheme.value = ['system', 'light', 'dark'].includes(themeVal) ? themeVal : 'system';
+      applyPreviewTheme(els.uiTheme.value);
+      els.uiTheme.addEventListener('change', () => applyPreviewTheme(els.uiTheme.value));
+    }
   });
 }
 
@@ -53,7 +60,8 @@ function onSave(e) {
     [STORAGE_KEYS.AZURE_TRANSLATE_ENDPOINT]: els.azureTranslateEndpoint.value.trim(),
     [STORAGE_KEYS.AZURE_TRANSLATE_KEY]: els.azureTranslateKey.value.trim(),
     [STORAGE_KEYS.AZURE_TRANSLATE_REGION]: els.azureTranslateRegion.value.trim(),
-    [STORAGE_KEYS.AUTO_TRANSLATE]: els.autoTranslate.checked
+    [STORAGE_KEYS.AUTO_TRANSLATE]: els.autoTranslate.checked,
+    ...(els.uiTheme ? { [STORAGE_KEYS.UI_THEME]: els.uiTheme.value } : {})
   };
   chrome.storage.sync.set(data, () => {
     els.status.textContent = 'Saved';
@@ -62,3 +70,12 @@ function onSave(e) {
 }
 
 // Provider toggle removed: Azure Vision enforced.
+
+function applyPreviewTheme(choice) {
+  let theme = choice;
+  if (theme === 'system') {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    theme = mq.matches ? 'dark' : 'light';
+  }
+  document.documentElement.dataset.theme = theme;
+}

@@ -1,0 +1,138 @@
+/* Reusable toggle component (theme-aware). Usage:
+  <label class="toggle">
+    <input type="checkbox" class="toggle-input" id="autoTranslate">  // keep id for JS
+    <span class="toggle-track" aria-hidden="true">
+      <span class="toggle-thumb"></span>
+    </span>
+    <span class="toggle-label">Auto translate after OCR</span>
+  </label>
+  Optional data-size="sm|md|lg" on .toggle for sizing.
+*/
+
+.toggle {
+  --tgl-track-width: 46px;
+  --tgl-track-height: 24px;
+  --tgl-thumb-size: 18px;
+  --tgl-transition: 160ms cubic-bezier(.4, 0, .2, 1);
+  --tgl-track-bg: var(--opt-input-bg, var(--pop-btn-bg, #2a2a2a));
+  --tgl-track-border: var(--opt-input-border, var(--pop-btn-border, #555));
+  --tgl-track-bg-active: var(--opt-accent, var(--pop-primary, #4da3ff));
+  --tgl-track-bg-active-hover: var(--opt-accent-hover, var(--pop-primary-hover, #64b5ff));
+  --tgl-thumb-bg: var(--opt-bg, var(--pop-bg, #1e1e1e));
+  --tgl-focus-ring: 0 0 0 3px color-mix(in srgb, var(--tgl-track-bg-active) 55%, transparent);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle[data-size="sm"] {
+  --tgl-track-width: 36px;
+  --tgl-track-height: 20px;
+  --tgl-thumb-size: 14px;
+  font-size: 13px;
+}
+
+.toggle[data-size="lg"] {
+  --tgl-track-width: 56px;
+  --tgl-track-height: 30px;
+  --tgl-thumb-size: 24px;
+  font-size: 15px;
+}
+
+.toggle-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.toggle-track {
+  position: relative;
+  width: var(--tgl-track-width);
+  height: var(--tgl-track-height);
+  background: var(--tgl-track-bg);
+  border: 1px solid var(--tgl-track-border);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  transition: background var(--tgl-transition), border-color var(--tgl-transition);
+  box-sizing: border-box;
+}
+
+.toggle-thumb {
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  width: var(--tgl-thumb-size);
+  height: var(--tgl-thumb-size);
+  background: var(--tgl-thumb-bg);
+  border-radius: 50%;
+  transform: translate(0, -50%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 0 0 1px rgba(0, 0, 0, .25);
+  transition: transform var(--tgl-transition), background var(--tgl-transition), box-shadow var(--tgl-transition);
+  will-change: transform;
+}
+
+.toggle-input:focus-visible~.toggle-track .toggle-thumb,
+.toggle-input:focus~.toggle-track .toggle-thumb {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 0 0 1px rgba(0, 0, 0, .25), var(--tgl-focus-ring);
+}
+
+.toggle:hover .toggle-track {
+  border-color: var(--tgl-track-bg-active);
+}
+
+.toggle-input:checked~.toggle-track {
+  background: var(--tgl-track-bg-active);
+  border-color: var(--tgl-track-bg-active);
+}
+
+.toggle-input:checked~.toggle-track:hover {
+  background: var(--tgl-track-bg-active-hover);
+}
+
+.toggle-input:checked~.toggle-track .toggle-thumb {
+  transform: translate(calc(var(--tgl-track-width) - var(--tgl-thumb-size) - 6px), -50%);
+}
+
+.toggle-label {
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* High contrast media query fallback (optional improvement area) */
+@media (forced-colors: active) {
+  .toggle-track {
+    forced-color-adjust: none;
+    background: Canvas;
+    border-color: GrayText;
+  }
+
+  .toggle-input:checked~.toggle-track {
+    background: Highlight;
+    border-color: Highlight;
+  }
+
+  .toggle-input:checked~.toggle-track .toggle-thumb {
+    background: Canvas;
+  }
+}
+
+/* Progressive enhancement for browsers supporting :has() allowing more flexible ordering if needed */
+.toggle:has(.toggle-input:checked) .toggle-track:not(.no-has) {
+  background: var(--tgl-track-bg-active);
+  border-color: var(--tgl-track-bg-active);
+}
+
+.toggle:has(.toggle-input:checked):hover .toggle-track:not(.no-has) {
+  background: var(--tgl-track-bg-active-hover);
+}
+
+.toggle:has(.toggle-input:checked) .toggle-track:not(.no-has) .toggle-thumb {
+  transform: translate(calc(var(--tgl-track-width) - var(--tgl-thumb-size) - 6px), -50%);
+}
