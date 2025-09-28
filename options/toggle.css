@@ -21,8 +21,7 @@
   --tgl-thumb-bg: var(--opt-bg, var(--pop-bg, #1e1e1e));
   --tgl-focus-ring: 0 0 0 3px color-mix(in srgb, var(--tgl-track-bg-active) 55%, transparent);
   display: inline-flex;
-  align-items: center;
-  gap: 10px;
+  gap: 4px;
   font-size: 14px;
   cursor: pointer;
   user-select: none;

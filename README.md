@@ -19,24 +19,58 @@ This repository contains a Manifest V3 Chrome extension scaffold that:
 4. Optionally sends the recognized text to Azure Translator (if key + endpoint configured) as a second call.
 5. Overlays the (translated or original) text near the selection and stores the last result in sync storage.
 
-## File / Module Structure
+## File / Module Structure (Refactored)
+
+The original single `content/selection.js` script has been decomposed into small modules for clarity and easier maintenance. The orchestrator now only wires the pipeline together (selection → capture → crop → OCR → translate → bubble).
 
 ```
 manifest.json
 background/
-    service_worker.js         # Handles tab capture, keyboard command, script injection
+    service_worker.js          # Tab capture, keyboard command, ordered injection of content modules
 content/
-    selection.js              # Region selection UI, image crop, OCR + translation calls, overlay bubble
-    overlay.css               # Styles for selection rectangle & result bubble
+    constants.js               # Content-side MSG & STORAGE_KEYS (plain script; idempotent)
+    state.js                   # Shared mutable state + getConfig() + applyTheme()
+    ocr.js                     # Crop image & Azure Vision request + JSON line extraction
+    translate.js               # Azure Translator helpers (auto + manual / force)
+    bubble.js                  # Result bubble UI & action buttons
+    overlay.js                 # Selection overlay DOM + mouse/keyboard events (ESC cancel)
+    selection.js               # Orchestrator (glue) listening for START_SELECTION
+    overlay.css                # Selection rectangle + bubble styles
 popup/
-    popup.html/.js/.css       # Popup UI to start selection & show last result
+    popup.html/.js/.css        # Popup UI to start selection & show last result
 options/
-    options.html/.js/.css     # Config: Azure Vision + Translator settings, auto-translate toggle
+    options.html/.js/.css      # Azure config, translation settings, theme choice
 src/
-    messages.js               # Message & storage key constants + defaults
-assets/icons/*.png          # Placeholder icons (add real icons later)
+    messages.js                # Background-side constants & defaults (ES module)
+assets/icons/*.png             # Icons
 README.md
 ```
+
+### Module Responsibilities (Content Namespace `window.__ocrSnip`)
+
+| Module | Responsibility | Exported Namespace |
+|--------|----------------|--------------------|
+| constants.js | Defines `MSG`, `STORAGE_KEYS` | `constants` |
+| state.js | Stores selection/bubble state + config/theme helpers | `state`, `getConfig`, `applyTheme` |
+| overlay.js | User drag selection & event lifecycle | `overlay` |
+| ocr.js | Crop & Azure Vision OCR (Read) | `ocr` |
+| translate.js | Auto + manual translation calls | `translate` |
+| bubble.js | Display and interact with result bubble | `bubble` |
+| selection.js | Orchestrates full pipeline | (no new object; uses existing namespaces) |
+
+All modules guard against reinjection (idempotent) so multiple `executeScript` calls won't break the page.
+
+### Orchestrated Flow Summary
+1. `MSG.START_SELECTION` received → `overlay.beginSelection()` starts user drag.
+2. On mouse up: selection rectangle passed to orchestrator callback.
+3. Background screenshot request (`chrome.runtime.sendMessage` → `CAPTURE_TAB`).
+4. Region cropped client-side → sent to Azure Vision Read (Image Analysis) via `ocr.performOcr`.
+5. If auto-translate enabled, `translate.maybeTranslate` runs.
+6. Result bubble shown via `bubble.showBubble` + optional manual Translate button.
+7. Last result persisted (`chrome.storage.sync`).
+
+### Why a Separate `constants.js` in Content?
+The background script imports `src/messages.js` as an ES module. Content scripts remain classic scripts for now (simpler injection & compatibility). Duplicating constants avoids needing to convert all content scripts to ES modules immediately. You can unify later by switching to module-type content scripts and importing from a shared file.
 
 ## Permissions Rationale
 
@@ -48,7 +82,7 @@ README.md
 
 `host_permissions` are limited to Azure Translator endpoints (Vision endpoint domain is covered by user-entered HTTPS URL; no blanket wildcard required unless you prefer to add it). There is no local processing path.
 
-If you later implement the OCR entirely in-page (e.g. WebAssembly) and drop screenshot capture, you may be able to remove or reduce some permissions.
+If you later implement the OCR entirely in-page (e.g. WebAssembly) and drop screenshot capture, you may be able to remove or reduce some permissions. Thanks to the modular layout, you would mostly swap out `ocr.js` and adjust the orchestrator.
 
 ## Keyboard Shortcut
 
@@ -83,7 +117,7 @@ Implementation notes: a `uiTheme` key is stored in `chrome.storage.sync`; when s
 
 ## Local / Offline OCR
 
-No local or offline OCR path is included. All OCR occurs against Azure Vision. To add a local provider in the future you would introduce a custom endpoint + host permission and branching logic in `content/selection.js`.
+No local or offline OCR path is included. All OCR occurs against Azure Vision. To add a local provider in the future add a parallel module (e.g. `ocr_local.js`) and branch within `selection.js`.
 
 ## Azure AI Vision OCR (Enforced Mode)
 

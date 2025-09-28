@@ -74,25 +74,29 @@ chrome.commands?.onCommand.addListener(async (command) => {
 });
 
 async function ensureContent(tabId) {
-  // MV3: use scripting.executeScript
+  // Inject modular content scripts in order (dependency order matters)
+  const files = [
+    'content/constants.js',
+    'content/state.js',
+    'content/ocr.js',
+    'content/translate.js',
+    'content/bubble.js',
+    'content/overlay.js',
+    'content/selection.js' // orchestrator last
+  ];
   try {
-    await chrome.scripting.executeScript({
-      target: { tabId },
-      files: ['content/selection.js']
-    });
+    await chrome.scripting.executeScript({ target: { tabId }, files });
+    console.log('[OCR SNIP][BG] Injected content modules into', tabId);
   } catch (err) {
     console.error('[OCR SNIP][BG] executeScript failed', err);
     throw err;
   }
-  console.log('[OCR SNIP][BG] Injected selection.js into', tabId);
   try {
-    await chrome.scripting.insertCSS({
-      target: { tabId },
-      files: ['content/overlay.css']
-    });
+    await chrome.scripting.insertCSS({ target: { tabId }, files: ['content/overlay.css'] });
   } catch (err) {
     console.error('[OCR SNIP][BG] insertCSS failed', err);
     throw err;
   }
   console.log('[OCR SNIP][BG] Inserted overlay.css into', tabId);
 }
+
