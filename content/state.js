@@ -7,7 +7,8 @@
     startY: 0,
     rectEl: null,
     rootEl: null,
-    bubbleEl: null
+    bubbleEl: null,
+    lastBubblePos: null
   };
 
   function getConfig() {
@@ -21,7 +22,8 @@
           azureTranslateEndpoint: vals[STORAGE_KEYS.AZURE_TRANSLATE_ENDPOINT] || '',
           azureTranslateKey: vals[STORAGE_KEYS.AZURE_TRANSLATE_KEY] || '',
           azureTranslateRegion: vals[STORAGE_KEYS.AZURE_TRANSLATE_REGION] || '',
-          autoTranslate: vals[STORAGE_KEYS.AUTO_TRANSLATE] !== false
+          autoTranslate: vals[STORAGE_KEYS.AUTO_TRANSLATE] !== false,
+          ignoreNewlines: vals[STORAGE_KEYS.IGNORE_NEWLINES] !== false
         });
       });
     });

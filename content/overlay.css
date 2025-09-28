@@ -78,8 +78,7 @@
 .ocr-bubble-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  /* Let the title take natural width; buttons pushed right by auto margin */
   padding: 6px 10px;
   background: linear-gradient(to bottom,
       color-mix(in srgb, var(--ocr-bg-alt) 85%, transparent),
@@ -92,7 +91,17 @@
 }
 
 .ocr-bubble-title {
-  flex: 1 1 auto;
+  font-weight: 600;
+}
+
+/* Header buttons container */
+.ocr-bubble-header-buttons {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: auto;
+  /* push group to the right */
+  pointer-events: auto;
+  /* allow clicks */
 }
 
 .ocr-result-bubble .lang {
@@ -119,6 +128,26 @@
 
 .ocr-bubble-close:hover {
   color: var(--ocr-fg);
+}
+
+.ocr-bubble-repeat {
+  background: transparent;
+  border: none;
+  color: var(--ocr-fg-dim);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.ocr-bubble-repeat:hover {
+  color: var(--ocr-fg);
+}
+
+.ocr-bubble-repeat:active,
+.ocr-bubble-close:active {
+  transform: scale(0.92);
 }
 
 .ocr-bubble-spinner {
@@ -241,4 +270,18 @@
 
 .ocr-bubble-actions button:hover .ocr-ext-icon {
   opacity: 1;
+}
+
+/* Defensive overrides in case older injected versions redefine layout */
+.ocr-bubble-header .ocr-bubble-title {
+  flex: initial !important;
+}
+
+.ocr-bubble-header .ocr-bubble-header-buttons {
+  display: inline-flex !important;
+  margin-left: auto !important;
+}
+
+.ocr-bubble-header .ocr-bubble-header-buttons>button {
+  position: relative;
 }

@@ -21,7 +21,8 @@
     AZURE_TRANSLATE_REGION: 'azureTranslateRegion',
     AUTO_TRANSLATE: 'autoTranslate',
     LAST_RESULT: 'lastResult',
-    UI_THEME: 'uiTheme'
+    UI_THEME: 'uiTheme',
+    IGNORE_NEWLINES: 'ignoreNewlines'
   };
   ns.constants = { MSG, STORAGE_KEYS };
 })(window.__ocrSnip = window.__ocrSnip || {});

@@ -6,7 +6,8 @@
     if (!cfg.autoTranslate || !cfg.azureTranslateKey) return null;
     console.log('[OCR SNIP] Performing translation request');
     const endpoint = cfg.azureTranslateEndpoint;
-    const body = [{ Text: text }];
+    const processed = cfg.ignoreNewlines ? text.replace(/[\r\n]+/g, ' ').replace(/\s{2,}/g, ' ').trim() : text;
+    const body = [{ Text: processed }];
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -25,7 +26,8 @@
     const cfg = await ns.getConfig();
     if (!(cfg.azureTranslateKey && cfg.azureTranslateEndpoint)) return null;
     console.log('[OCR SNIP] Manual translate triggered');
-    const body = [{ Text: text }];
+    const processed = cfg.ignoreNewlines ? text.replace(/[\r\n]+/g, ' ').replace(/\s{2,}/g, ' ').trim() : text;
+    const body = [{ Text: processed }];
     const res = await fetch(cfg.azureTranslateEndpoint, {
       method: 'POST',
       headers: {

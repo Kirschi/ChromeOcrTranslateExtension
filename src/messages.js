@@ -18,7 +18,8 @@ export const STORAGE_KEYS = {
   AZURE_TRANSLATE_REGION: 'azureTranslateRegion',
   AUTO_TRANSLATE: 'autoTranslate',
   LAST_RESULT: 'lastResult',
-  UI_THEME: 'uiTheme' // 'system' | 'light' | 'dark'
+  UI_THEME: 'uiTheme', // 'system' | 'light' | 'dark'
+  IGNORE_NEWLINES: 'ignoreNewlines'
 };
 
 export const DEFAULTS = {
@@ -29,5 +30,6 @@ export const DEFAULTS = {
   azureTranslateKey: '',
   azureTranslateRegion: '',
   autoTranslate: true,
-  uiTheme: 'system'
+  uiTheme: 'system',
+  ignoreNewlines: true
 };

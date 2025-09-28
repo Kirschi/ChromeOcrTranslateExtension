@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   els.azureTranslateKey = document.getElementById('azureTranslateKey');
   els.azureTranslateRegion = document.getElementById('azureTranslateRegion');
   els.autoTranslate = document.getElementById('autoTranslate');
+  els.ignoreNewlines = document.getElementById('ignoreNewlines');
   els.status = document.getElementById('status');
   // New Vision fields
   els.azureVisionEndpoint = document.getElementById('azureVisionEndpoint');
@@ -41,6 +42,9 @@ function load() {
     els.azureTranslateKey.value = vals[STORAGE_KEYS.AZURE_TRANSLATE_KEY] || '';
     els.azureTranslateRegion.value = vals[STORAGE_KEYS.AZURE_TRANSLATE_REGION] || '';
     els.autoTranslate.checked = vals[STORAGE_KEYS.AUTO_TRANSLATE] !== false;
+    if (els.ignoreNewlines) {
+      els.ignoreNewlines.checked = vals[STORAGE_KEYS.IGNORE_NEWLINES] !== false; // default true
+    }
     if (els.uiTheme) {
       const themeVal = vals[STORAGE_KEYS.UI_THEME] || DEFAULTS.uiTheme || 'system';
       els.uiTheme.value = ['system', 'light', 'dark'].includes(themeVal) ? themeVal : 'system';
@@ -61,6 +65,7 @@ function onSave(e) {
     [STORAGE_KEYS.AZURE_TRANSLATE_KEY]: els.azureTranslateKey.value.trim(),
     [STORAGE_KEYS.AZURE_TRANSLATE_REGION]: els.azureTranslateRegion.value.trim(),
     [STORAGE_KEYS.AUTO_TRANSLATE]: els.autoTranslate.checked,
+    ...(els.ignoreNewlines ? { [STORAGE_KEYS.IGNORE_NEWLINES]: els.ignoreNewlines.checked } : {}),
     ...(els.uiTheme ? { [STORAGE_KEYS.UI_THEME]: els.uiTheme.value } : {})
   };
   chrome.storage.sync.set(data, () => {

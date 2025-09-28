@@ -20,7 +20,7 @@
   --tgl-track-bg-active-hover: var(--opt-accent-hover, var(--pop-primary-hover, #64b5ff));
   --tgl-thumb-bg: var(--opt-bg, var(--pop-bg, #1e1e1e));
   --tgl-focus-ring: 0 0 0 3px color-mix(in srgb, var(--tgl-track-bg-active) 55%, transparent);
-  display: inline-flex;
+  display: flex;
   gap: 4px;
   font-size: 14px;
   cursor: pointer;

@@ -13,6 +13,11 @@
     removeBubble();
     const bubble = document.createElement('div');
     bubble.className = 'ocr-result-bubble' + (isError ? ' ocr-result-error' : '');
+    // If coordinates flagged as 'reuse', use stored last position
+    if (x === '__reuse' && y === '__reuse' && state.lastBubblePos) {
+      x = state.lastBubblePos.x;
+      y = state.lastBubblePos.y;
+    }
 
     // Header (draggable handle)
     const header = document.createElement('div');
@@ -21,11 +26,31 @@
     title.className = 'ocr-bubble-title';
     title.textContent = 'OCR Result';
     header.appendChild(title);
+    const btnGroup = document.createElement('div');
+    btnGroup.className = 'ocr-bubble-header-buttons';
+
+    const repeatBtn = document.createElement('button');
+    repeatBtn.className = 'ocr-bubble-repeat';
+    repeatBtn.textContent = '↺';
+    repeatBtn.title = 'Do another snip';
+    repeatBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Preserve current position
+      const rect = bubble.getBoundingClientRect();
+      state.lastBubblePos = { x: rect.left, y: rect.top };
+      // Start selection again
+      try { window.__startOcrSelection?.(); } catch (_) { }
+    });
+    btnGroup.appendChild(repeatBtn);
+
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '×';
     closeBtn.className = 'ocr-bubble-close';
-    closeBtn.addEventListener('click', () => removeBubble());
-    header.appendChild(closeBtn);
+    closeBtn.title = 'Close';
+    closeBtn.addEventListener('click', (e) => { e.stopPropagation(); removeBubble(); });
+    btnGroup.appendChild(closeBtn);
+
+    header.appendChild(btnGroup);
     bubble.appendChild(header);
 
     // OCR Section
@@ -74,6 +99,9 @@
     bubble.style.left = Math.max(4, Math.min(x, window.innerWidth - rect.width - 4)) + 'px';
     bubble.style.top = Math.max(4, Math.min(y, window.innerHeight - rect.height - 4)) + 'px';
     state.bubbleEl = bubble;
+    // Persist last position
+    const finalRect = bubble.getBoundingClientRect();
+    state.lastBubblePos = { x: finalRect.left, y: finalRect.top };
 
     // Drag logic
     (function enableDrag() {
