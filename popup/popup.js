@@ -1,0 +1,40 @@
+import { MSG, STORAGE_KEYS } from '../src/messages.js';
+console.log('[OCR SNIP][POPUP] Script evaluated (popup opened) timestamp', Date.now());
+
+async function init() {
+  console.log('[OCR SNIP][POPUP] init');
+  document.getElementById('startBtn').addEventListener('click', startSelection);
+  document.getElementById('openOptions').addEventListener('click', (e) => {
+    e.preventDefault();
+    console.log('[OCR SNIP][POPUP] Open options clicked');
+    chrome.runtime.openOptionsPage();
+  });
+  loadLast();
+}
+
+async function startSelection() {
+  console.log('[OCR SNIP][POPUP] Start selection clicked');
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id) return;
+  // inject if needed then send start message
+  try {
+    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content/selection.js'] });
+    await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ['content/overlay.css'] });
+    console.log('[OCR SNIP][POPUP] Injected assets into tab', tab.id);
+  } catch (_) { /* ignore */ }
+  chrome.tabs.sendMessage(tab.id, { type: MSG.START_SELECTION });
+  console.log('[OCR SNIP][POPUP] Sent START_SELECTION to tab', tab.id);
+  window.close();
+}
+
+function loadLast() {
+  console.log('[OCR SNIP][POPUP] Loading last result');
+  chrome.storage.sync.get(STORAGE_KEYS.LAST_RESULT, (vals) => {
+    const lr = vals[STORAGE_KEYS.LAST_RESULT];
+    const pre = document.getElementById('lastResult');
+    if (!lr) { pre.textContent = '(none)'; return; }
+    pre.textContent = (lr.translated || lr.ocr || '').slice(0, 500);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);

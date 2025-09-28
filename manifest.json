@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Kirschi's OCR + Translate Snipper",
+  "description": "Select a region, OCR via local backend, then translate (Azure) and overlay result on the page.",
+  "version": "0.2.0",
+  "action": {
+    "default_title": "OCR Snip",
+    "default_popup": "popup/popup.html"
+  },
+  "permissions": [
+    "storage",
+    "scripting",
+    "tabs",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://api.cognitive.microsofttranslator.com/*",
+    "https://*.api.cognitive.microsofttranslator.com/*"
+  ],
+  "background": {
+    "service_worker": "background/service_worker.js",
+    "type": "module"
+  },
+  "icons": {
+    "16": "assets/icons/icon-16.png",
+    "48": "assets/icons/icon-48.png",
+    "128": "assets/icons/icon-128.png"
+  },
+  "options_page": "options/options.html",
+  "commands": {
+    "trigger-snip": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y"
+      },
+      "description": "Start OCR snipping selection"
+    }
+  }
+}

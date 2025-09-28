@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Kirschi's OCR Snip</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+
+<body>
+  <main>
+    <div class="header-row">
+      <h1>Kirschi's OCR Snip</h1>
+      <button id="openOptions" class="icon-btn" title="Settings" aria-label="Settings">⚙️</button>
+    </div>
+    <button id="startBtn" class="primary">Start Selection</button>
+    <div class="result">
+      <h2>Last Result</h2>
+      <pre id="lastResult">(none)</pre>
+    </div>
+    <p class="hint">Shortcut: Ctrl+Shift+Y (config via chrome://extensions/shortcuts)</p>
+  </main>
+  <script type="module" src="popup.js"></script>
+</body>
+
+</html>
