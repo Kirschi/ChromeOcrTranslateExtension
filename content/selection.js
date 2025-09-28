@@ -30,9 +30,9 @@
       const cfg = await ns.getConfig();
       let translated = null;
       if (cfg.autoTranslate) { translated = await ns.translate.maybeTranslate(ocrText); if (translated) console.log('[OCR SNIP] Translation text length:', translated.length); }
-      const display = translated || ocrText;
-      showBubble(display, selection.left + selection.width + 8, selection.top, translated ? 'Translated' : 'OCR');
-      addActionButtons({ showTranslate: !cfg.autoTranslate, originalText: ocrText });
+      // Always show OCR text first in OCR section
+      showBubble(ocrText, selection.left + selection.width + 8, selection.top, 'OCR');
+      addActionButtons({ showTranslate: true, originalText: ocrText, preFetchedTranslation: translated });
       chrome.storage.sync.set({ [STORAGE_KEYS.LAST_RESULT]: { ocr: ocrText, translated, ts: Date.now() } });
       const tEnd = performance.now();
       console.log('[OCR SNIP] Timing ms { crop:' + (tAfterCrop - t0).toFixed(1) + ', ocr:' + (tAfterOcr - tAfterCrop).toFixed(1) + ', translate+display:' + (tEnd - tAfterOcr).toFixed(1) + ', total:' + (tEnd - t0).toFixed(1) + ' }');
