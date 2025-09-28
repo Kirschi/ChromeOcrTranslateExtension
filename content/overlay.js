@@ -6,7 +6,9 @@
  * Emits the final rectangle via supplied callback once mouse is released (size threshold enforced).
  */
 (function (ns) {
-  if (ns.overlay) return;
+  if (ns.overlay) {
+    return;
+  }
   const { MSG } = ns.constants;
   const state = ns.state;
 

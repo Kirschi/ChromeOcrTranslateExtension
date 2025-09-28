@@ -8,7 +8,9 @@
  * only one orchestrator attaches listeners.
  */
 (function (ns) {
-  if (ns.__mainLoaded) return; // idempotent guard
+  if (ns.__mainLoaded) {
+    return; // idempotent guard
+  }
   ns.__mainLoaded = true;
   console.log('[OCR SNIP] Content orchestrator loaded');
   const { MSG, STORAGE_KEYS } = ns.constants;

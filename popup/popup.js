@@ -31,7 +31,9 @@ async function init() {
 async function startSelection() {
   console.log('[OCR SNIP][POPUP] Start selection clicked');
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab?.id) return;
+  if (!tab?.id) {
+    return;
+  }
   // inject if needed then send start message
   try {
     await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content/selection.js'] });
@@ -80,7 +82,9 @@ function applyTheme() {
  */
 function updateShortcutDisplay() {
   const el = document.getElementById('shortcutDisplay');
-  if (!el) return;
+  if (!el) {
+    return;
+  }
   if (!chrome.commands?.getAll) {
     el.textContent = '(not available)';
     return;

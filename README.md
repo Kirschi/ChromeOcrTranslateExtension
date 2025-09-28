@@ -218,6 +218,15 @@ Note: The current implementation builds the request internally (see `translate.j
 4. Bubble auto-closes after a few seconds; last result stored for quick reference in popup.
 5. Press Esc while selecting to cancel.
 
+## Code Style
+
+The codebase follows One True Brace Style (1TBS):
+- Opening brace on the same line as the control statement (`if (cond) {`).
+- `else / catch / finally` on the same line as the preceding closing brace (`} else {`).
+- Braces are mandatory even for single-line bodies (no `if (x) return;`).
+- Early returns always occupy their own braced block for safer future edits / diffs.
+
+
 ## Customization Ideas / Next Steps
 
 - Add TypeScript build pipeline (Vite / esbuild) for future complexity.

@@ -123,16 +123,22 @@ function applyPreviewTheme(choice) {
  * Enable/disable Azure vs Google translation input fields based on selected provider.
  */
 function updateProviderVisibility() {
-  if (!els.translationProvider) return;
+  if (!els.translationProvider) {
+    return;
+  }
   const provider = els.translationProvider.value;
   const useGoogle = provider === 'google';
   // Google section always visible now; simply disable irrelevant inputs
-  if (els.azureTranslateEndpoint) els.azureTranslateEndpoint.disabled = useGoogle;
+  if (els.azureTranslateEndpoint) {
+    els.azureTranslateEndpoint.disabled = useGoogle;
+  }
   if (els.azureTranslateKey) {
     els.azureTranslateKey.disabled = useGoogle;
     els.azureTranslateKey.required = !useGoogle; // required only when Azure active
   }
-  if (els.azureTranslateRegion) els.azureTranslateRegion.disabled = useGoogle;
+  if (els.azureTranslateRegion) {
+    els.azureTranslateRegion.disabled = useGoogle;
+  }
   if (els.googleTranslateApiKey) {
     // Disable Google key input when Azure is selected; enable & require only for Google
     els.googleTranslateApiKey.disabled = !useGoogle;

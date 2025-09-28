@@ -7,7 +7,9 @@
  * The module is idempotent; repeated injections return immediately.
  */
 (function (ns) {
-  if (ns.constants) return; // idempotent
+  if (ns.constants) {
+    return; // idempotent
+  }
   const MSG = {
     START_SELECTION: 'START_SELECTION',
     CAPTURE_TAB: 'CAPTURE_TAB',

@@ -9,7 +9,9 @@
  * Includes drag support (mouse + basic touch) and position persistence across repeat snips.
  */
 (function (ns) {
-  if (ns.bubble) return;
+  if (ns.bubble) {
+    return;
+  }
   const { STORAGE_KEYS } = ns.constants;
   const state = ns.state;
 
@@ -18,7 +20,9 @@
    * Destroy any existing bubble element and clear state reference.
    */
   function removeBubble() {
-    if (state.bubbleEl?.parentNode) state.bubbleEl.parentNode.removeChild(state.bubbleEl);
+    if (state.bubbleEl?.parentNode) {
+      state.bubbleEl.parentNode.removeChild(state.bubbleEl);
+    }
     state.bubbleEl = null;
   }
 
@@ -189,9 +193,13 @@
    * @param {string|null} param0.preFetchedTranslation Optional already obtained translation.
    */
   async function addActionButtons({ showTranslate, originalText, preFetchedTranslation = null }) {
-    if (!state.bubbleEl) return;
+    if (!state.bubbleEl) {
+      return;
+    }
     const actions = state.bubbleEl.querySelector('.ocr-bubble-actions');
-    if (!actions) return;
+    if (!actions) {
+      return;
+    }
     const transSection = state.bubbleEl.querySelector('.ocr-translation-section');
     const transBody = state.bubbleEl.querySelector('.ocr-translation-body');
     const transHeader = state.bubbleEl.querySelector('.ocr-translation-header');
@@ -213,12 +221,18 @@
       const OCR_SELECTOR = '.ocr-bubble-text';
       let lastSourceUsed = originalText;
       let lastTranslation = preFetchedTranslation || null;
-      if (preFetchedTranslation) { transBody.textContent = preFetchedTranslation; }
+      if (preFetchedTranslation) {
+        transBody.textContent = preFetchedTranslation;
+      }
       btnTrans.textContent = 'Translate';
       async function performTranslate() {
-        if (!transBody) return;
+        if (!transBody) {
+          return;
+        }
         const ocrEl = state.bubbleEl.querySelector(OCR_SELECTOR);
-        if (!ocrEl) return;
+        if (!ocrEl) {
+          return;
+        }
         const currentText = ocrEl.textContent || '';
         if (currentText === lastSourceUsed && lastTranslation) {
           transBody.textContent = lastTranslation;

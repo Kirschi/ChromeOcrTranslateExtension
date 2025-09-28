@@ -9,7 +9,9 @@
  * Idempotent module guard prevents duplicate definitions on reinjection.
  */
 (function (ns) {
-  if (ns.ocr) return;
+  if (ns.ocr) {
+    return;
+  }
   /**
    * cropDataUrl
    * Crop a PNG screenshot data URL to a selection rectangle, scaled for devicePixelRatio.
@@ -50,7 +52,9 @@
    */
   async function performOcr(croppedDataUrl) {
     const cfg = await ns.getConfig();
-    if (!(cfg.azureVisionKey && cfg.azureVisionEndpoint)) throw new Error('Azure Vision not configured (endpoint/key required)');
+    if (!(cfg.azureVisionKey && cfg.azureVisionEndpoint)) {
+      throw new Error('Azure Vision not configured (endpoint/key required)');
+    }
     console.log('[OCR SNIP] Using Azure Vision OCR');
     return await azureVisionOcr(croppedDataUrl, cfg);
   }
@@ -84,7 +88,9 @@
     const pushLines = (arr, keyText, keyContent) => {
       arr?.forEach(l => {
         const text = l[keyText] || l[keyContent] || '';
-        if (!text) return;
+        if (!text) {
+          return;
+        }
         let box = l.boundingBox || l.polygon;
         let minX = 0, maxX = 0, minY = 0, maxY = 0;
         if (Array.isArray(box) && box.length >= 8) {
@@ -98,11 +104,21 @@
         collected.push({ text, minX, maxX, minY, maxY });
       });
     };
-    if (json.readResult?.blocks?.length) json.readResult.blocks.forEach(b => pushLines(b.lines, 'text', 'content'));
-    if (!collected.length && json.readResult?.pages?.length) json.readResult.pages.forEach(p => pushLines(p.lines, 'content', 'text'));
-    if (!collected.length && typeof json.readResult?.content === 'string') collected.push({ text: json.readResult.content });
-    if (!collected.length && json.readResult?.blocks?.[0]?.lines?.[0]?.text) collected.push({ text: json.readResult.blocks[0].lines[0].text });
-    if (!collected.length) return '';
+    if (json.readResult?.blocks?.length) {
+      json.readResult.blocks.forEach(b => pushLines(b.lines, 'text', 'content'));
+    }
+    if (!collected.length && json.readResult?.pages?.length) {
+      json.readResult.pages.forEach(p => pushLines(p.lines, 'content', 'text'));
+    }
+    if (!collected.length && typeof json.readResult?.content === 'string') {
+      collected.push({ text: json.readResult.content });
+    }
+    if (!collected.length && json.readResult?.blocks?.[0]?.lines?.[0]?.text) {
+      collected.push({ text: json.readResult.blocks[0].lines[0].text });
+    }
+    if (!collected.length) {
+      return '';
+    }
     return collected.map(l => l.text).reverse().map(s => s.trim()).filter(Boolean).join('\n');
   }
 

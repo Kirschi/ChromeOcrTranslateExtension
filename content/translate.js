@@ -9,7 +9,9 @@
  * All errors return null unless manual invocation, where they are logged for UX feedback.
  */
 (function (ns) {
-  if (ns.translate) return;
+  if (ns.translate) {
+    return;
+  }
   /**
    * maybeTranslate
    * Attempt translation only if autoTranslate is true in config.
@@ -18,7 +20,9 @@
    */
   async function maybeTranslate(text) {
     const cfg = await ns.getConfig();
-    if (!cfg.autoTranslate) return null;
+    if (!cfg.autoTranslate) {
+      return null;
+    }
     return await performTranslate(cfg, text, false);
   }
 
@@ -45,10 +49,14 @@
     try {
       const provider = cfg.translationProvider || 'azure';
       const processed = cfg.ignoreNewlines ? text.replace(/[\r\n]+/g, ' ').replace(/\s{2,}/g, ' ').trim() : text;
-      if (!processed) return null;
+      if (!processed) {
+        return null;
+      }
       if (provider === 'google') {
         if (!cfg.googleTranslateApiKey) {
-          if (isManual) console.warn('[OCR SNIP] Google Translate provider selected but API key missing');
+          if (isManual) {
+            console.warn('[OCR SNIP] Google Translate provider selected but API key missing');
+          }
           return null;
         }
         // Google Translate API v2 endpoint
@@ -62,14 +70,18 @@
           body: JSON.stringify(body)
         });
         if (!res.ok) {
-          if (isManual) console.error('[OCR SNIP] Google translate request failed', res.status);
+          if (isManual) {
+            console.error('[OCR SNIP] Google translate request failed', res.status);
+          }
           return null;
         }
         const json = await res.json();
         return json?.data?.translations?.[0]?.translatedText || null;
       } else { // Azure default
         if (!(cfg.azureTranslateKey && cfg.azureTranslateEndpoint)) {
-          if (isManual) console.warn('[OCR SNIP] Azure translation not configured');
+          if (isManual) {
+            console.warn('[OCR SNIP] Azure translation not configured');
+          }
           return null;
         }
         console.log('[OCR SNIP] Performing Azure translation request');
@@ -83,12 +95,16 @@
           },
           body: JSON.stringify(body)
         });
-        if (!res.ok) return null;
+        if (!res.ok) {
+          return null;
+        }
         const json = await res.json();
         return json?.[0]?.translations?.[0]?.text || null;
       }
     } catch (e) {
-      if (isManual) console.error('[OCR SNIP] Translation error', e);
+      if (isManual) {
+        console.error('[OCR SNIP] Translation error', e);
+      }
       return null;
     }
   }

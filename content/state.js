@@ -9,7 +9,9 @@
  * Idempotent so re‑injection will not overwrite existing state object.
  */
 (function (ns) {
-  if (ns.state) return;
+  if (ns.state) {
+    return;
+  }
   const state = {
     selecting: false,
     startX: 0,

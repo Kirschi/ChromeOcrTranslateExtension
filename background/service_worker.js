@@ -89,7 +89,9 @@ chrome.commands?.onCommand.addListener(async (command) => {
   if (command === 'trigger-snip') {
     console.log('[OCR SNIP][BG] Keyboard command trigger-snip');
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.id) return;
+    if (!tab?.id) {
+      return;
+    }
     try {
       await ensureContent(tab.id);
       await sendStartSelection(tab.id, tab.url);
