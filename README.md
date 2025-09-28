@@ -52,7 +52,7 @@ If you later implement the OCR entirely in-page (e.g. WebAssembly) and drop scre
 
 ## Keyboard Shortcut
 
-Default: `Ctrl+Shift+Y` (Win/Linux) / `Command+Shift+Y` (macOS)
+Default: `Ctrl+Shift+S` (Win/Linux) / `Command+Shift+S` (macOS)
 
 You can customize it via `chrome://extensions/shortcuts`.
 

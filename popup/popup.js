@@ -4,6 +4,7 @@ console.log('[OCR SNIP][POPUP] Script evaluated (popup opened) timestamp', Date.
 async function init() {
   console.log('[OCR SNIP][POPUP] init');
   applyTheme();
+  updateShortcutDisplay();
   document.getElementById('startBtn').addEventListener('click', startSelection);
   document.getElementById('openOptions').addEventListener('click', (e) => {
     e.preventDefault();
@@ -49,4 +50,29 @@ function applyTheme() {
     }
     document.documentElement.dataset.theme = choice;
   });
+}
+
+function updateShortcutDisplay() {
+  const el = document.getElementById('shortcutDisplay');
+  if (!el) return;
+  if (!chrome.commands?.getAll) {
+    el.textContent = '(not available)';
+    return;
+  }
+  try {
+    chrome.commands.getAll((commands) => {
+      if (chrome.runtime.lastError) {
+        el.textContent = '(error)';
+        return;
+      }
+      const cmd = commands?.find(c => c.name === 'trigger-snip');
+      if (!cmd || !cmd.shortcut) {
+        el.textContent = '(not set)';
+      } else {
+        el.textContent = cmd.shortcut;
+      }
+    });
+  } catch (e) {
+    el.textContent = '(error)';
+  }
 }

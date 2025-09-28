@@ -30,8 +30,8 @@
   "commands": {
     "trigger-snip": {
       "suggested_key": {
-        "default": "Ctrl+Shift+Y",
-        "mac": "Command+Shift+Y"
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
       },
       "description": "Start OCR snipping selection"
     }
