@@ -1,6 +1,6 @@
 # Chrome OCR Extension
 
-An MV3 Chrome/Edge extension that lets you draw a region on the current page, performs OCR using **Azure AI Vision (Image Analysis / Read)**, then (optionally) sends the recognized text to a translation provider (**Azure Translator** or **Google Translate API**). The recognized or translated text is overlaid inline in a small, movable bubble. Primary focus: Japanese (including vertical manga text) but it works for any language supported by Azure Vision (and translation provider).
+An MV3 Chrome/Edge extension that lets you draw a region on the current page, performs OCR using **Azure AI Vision (Image Analysis / Read)**, then (optionally) sends the recognized text to a translation provider (**Azure Translator** or **Google Translate API**). The recognized or translated text is overlaid inline in a small, movable bubble. Primary focus: Japanese (including vertical manga text) but it works for any language supported by Azure Vision (and translation provider). Currently only translates to `en`.
 
 This extension is intended for developers or power users. You must provide your own Azure Vision endpoint + key, and (optionally) either an Azure Translator key/endpoint or a Google Cloud Translation API key.
 
@@ -229,9 +229,24 @@ Note: The current implementation builds the request internally (see `translate.j
 
 ## Security / Privacy Notes
 
-* Cropped images are sent only to your configured Azure Vision endpoint over HTTPS.
-* Only text (never images) is sent to the translation provider (Azure or Google) if translation is enabled.
-* No analytics or telemetry; network calls are limited to the user‑configured endpoints plus Google's translation endpoint when that provider is chosen.
+Core data flows:
+* Cropped images (just the selected rectangle, not the full page) are sent only to your configured Azure Vision endpoint over HTTPS.
+* Only extracted text (never images) is sent to the translation provider (Azure or Google) if translation is enabled.
+* No analytics, telemetry, or third‑party tracking scripts are included; network calls are limited to the user‑configured Azure endpoints and Google's translation endpoint when that provider is chosen.
+
+Storage & sync behavior:
+* API keys and endpoints you enter are stored in `chrome.storage.sync`, which means they are synchronized across Chrome/Edge profiles where you are signed in with sync enabled. They are not end‑to‑end encrypted; treat them as moderately sensitive.
+* If you prefer strictly local storage, you (or a future version) can switch to `chrome.storage.local` with a minor code change.
+* The last OCR/translation result (text only) is stored (overwriting the previous one). No historical log or images are kept.
+* Avoid using the tool on sensitive, personal, regulated, or confidential material you do not wish to transmit to cloud services.
+
+Service Terms & Costs:
+* Use of Azure AI Vision, Azure Translator, and Google Cloud Translation APIs is subject to their respective Terms of Service and billing. You are responsible for any charges incurred.
+* API rate limits (throttling) may apply; rapid or automated use could lead to quota errors.
+
+Threat considerations:
+* Keys in sync storage could be exfiltrated by any other locally installed malicious extension granted `storage` access (low likelihood but possible). For higher assurance, consider using short‑lived proxy tokens or local storage and disabling sync.
+* All injected DOM elements are text‑only (no HTML injection of OCR/translation output).
 
 ## Troubleshooting
 
@@ -241,6 +256,16 @@ Note: The current implementation builds the request internally (see `translate.j
 | Translation missing | Key/region not set or endpoint incorrect | Verify options page entries |
 | Selection overlay never appears | Content script injection blocked | Reload tab or re-install extension |
 | Screenshot fails | Permission / protected page | Try a normal HTTP(S) page, some chrome:// pages are restricted |
+
+## Special thanks
+
+Thanks to AI coding assistants (GitHub Copilot and similar tools) for development acceleration.
+
+## Disclaimer / Trademarks
+
+This project is an independent, community-created extension. It is **not** affiliated with, endorsed by, or sponsored by Microsoft, Google, or the Chromium project. 
+
+"Azure", "Azure AI Vision", "Azure Translator" are trademarks or registered trademarks of Microsoft Corporation. "Google Cloud", "Google Translate", and the Google logo are trademarks of Google LLC. "Chrome" and the Chromium logo are trademarks of Google LLC. All other trademarks are the property of their respective owners. Use of the APIs and services referenced is subject to their own terms.
 
 ## License
 
