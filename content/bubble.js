@@ -76,12 +76,12 @@
     ocrSection.appendChild(contentSpan);
     bubble.appendChild(ocrSection);
 
-    // Translation Section (hidden until requested)
+    // Translation Section (always visible, may start empty)
     const transSection = document.createElement('div');
-    transSection.className = 'ocr-translation-section hidden';
+    transSection.className = 'ocr-translation-section';
     const transHeader = document.createElement('div');
     transHeader.className = 'ocr-translation-header';
-    transHeader.textContent = 'Translation';
+    transHeader.textContent = 'Translation'; // provider tag appended later in addActionButtons
     transSection.appendChild(transHeader);
     const transBody = document.createElement('div');
     transBody.className = 'ocr-translation-body';
@@ -160,71 +160,59 @@
     if (!state.bubbleEl) return;
     const actions = state.bubbleEl.querySelector('.ocr-bubble-actions');
     if (!actions) return;
+    const transSection = state.bubbleEl.querySelector('.ocr-translation-section');
+    const transBody = state.bubbleEl.querySelector('.ocr-translation-body');
+    const transHeader = state.bubbleEl.querySelector('.ocr-translation-header');
+    // Add provider label
+    try {
+      const cfg = await ns.getConfig();
+      const provider = cfg.translationProvider === 'google' ? 'Google' : 'Azure';
+      if (transHeader && !transHeader.querySelector('span.provider')) {
+        const prov = document.createElement('span');
+        prov.className = 'provider';
+        prov.textContent = ` (${provider})`;
+        transHeader.appendChild(prov);
+      }
+    } catch (_) { }
+
     if (showTranslate) {
       const btnTrans = document.createElement('button');
+      btnTrans.className = 'ocr-btn-primary';
       const OCR_SELECTOR = '.ocr-bubble-text';
-      const transSection = state.bubbleEl.querySelector('.ocr-translation-section');
-      const transBody = state.bubbleEl.querySelector('.ocr-translation-body');
       let lastSourceUsed = originalText;
       let lastTranslation = preFetchedTranslation || null;
-      btnTrans.textContent = preFetchedTranslation ? 'Show Translation' : 'Translate';
-
-      async function performTranslate(showOnly = false) {
-        if (!transSection || !transBody) return;
+      if (preFetchedTranslation) { transBody.textContent = preFetchedTranslation; }
+      btnTrans.textContent = 'Translate';
+      async function performTranslate() {
+        if (!transBody) return;
         const ocrEl = state.bubbleEl.querySelector(OCR_SELECTOR);
         if (!ocrEl) return;
         const currentText = ocrEl.textContent || '';
-
-        // Decide whether we can reuse pre-fetched translation
-        let translationToUse = null;
-        if (showOnly && lastTranslation && currentText === lastSourceUsed) {
-          translationToUse = lastTranslation;
-        } else if (currentText === lastSourceUsed && lastTranslation) {
-          // Re-show existing
-          translationToUse = lastTranslation;
-        } else {
-          btnTrans.disabled = true;
-          const originalLabel = btnTrans.textContent;
-          btnTrans.textContent = 'Translating...';
-          try {
-            translationToUse = await ns.translate.forceTranslate(currentText);
-            lastSourceUsed = currentText;
-            lastTranslation = translationToUse;
-          } catch (e) {
-            console.error('[OCR SNIP] Manual translate error', e);
-            btnTrans.textContent = 'Error';
-            btnTrans.disabled = false;
-            return;
-          }
+        if (currentText === lastSourceUsed && lastTranslation) {
+          transBody.textContent = lastTranslation;
+          return;
         }
-
-        if (translationToUse) {
-          transBody.textContent = translationToUse;
-          transSection.classList.remove('hidden');
-          btnTrans.textContent = 'Translate'; // keep available for re-translation
-        } else {
-          transBody.textContent = '';
-          transSection.classList.remove('hidden');
-          btnTrans.textContent = 'No translation';
+        btnTrans.disabled = true;
+        const prev = btnTrans.textContent;
+        btnTrans.textContent = 'Translating...';
+        try {
+          const translated = await ns.translate.forceTranslate(currentText);
+          lastSourceUsed = currentText;
+          lastTranslation = translated;
+          transBody.textContent = translated || '';
+          btnTrans.textContent = translated ? 'Translate' : 'No translation';
+        } catch (e) {
+          console.error('[OCR SNIP] Manual translate error', e);
+          btnTrans.textContent = 'Error';
+        } finally {
+          btnTrans.disabled = false;
         }
-        btnTrans.disabled = false; // Re-enable for further edits
       }
-
-      btnTrans.addEventListener('click', () => {
-        // If translation section hidden and we have pre-fetched translation & text unchanged, just reveal without new request
-        const ocrEl = state.bubbleEl.querySelector(OCR_SELECTOR);
-        const currentText = ocrEl?.textContent || '';
-        const hidden = transSection?.classList.contains('hidden');
-        if (hidden && lastTranslation && currentText === lastSourceUsed) {
-          performTranslate(true);
-        } else {
-          performTranslate(false);
-        }
-      });
-
+      btnTrans.addEventListener('click', performTranslate);
       actions.appendChild(btnTrans);
     }
     const btnG = document.createElement('button');
+    btnG.className = 'ocr-btn-external';
     btnG.innerHTML = 'Google Translate <span class="ocr-ext-icon" aria-label="opens in new tab" title="Opens in new tab">↗</span>';
     btnG.addEventListener('click', () => {
       const url = 'https://translate.google.com/?sl=auto&tl=en&text=' + encodeURIComponent(originalText) + '&op=translate';
