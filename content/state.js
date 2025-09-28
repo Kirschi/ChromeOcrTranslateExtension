@@ -22,6 +22,8 @@
           azureTranslateEndpoint: vals[STORAGE_KEYS.AZURE_TRANSLATE_ENDPOINT] || '',
           azureTranslateKey: vals[STORAGE_KEYS.AZURE_TRANSLATE_KEY] || '',
           azureTranslateRegion: vals[STORAGE_KEYS.AZURE_TRANSLATE_REGION] || '',
+          translationProvider: vals[STORAGE_KEYS.TRANSLATION_PROVIDER] || 'azure',
+          googleTranslateApiKey: vals[STORAGE_KEYS.GOOGLE_TRANSLATE_API_KEY] || '',
           autoTranslate: vals[STORAGE_KEYS.AUTO_TRANSLATE] !== false,
           ignoreNewlines: vals[STORAGE_KEYS.IGNORE_NEWLINES] !== false
         });

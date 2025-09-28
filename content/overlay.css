@@ -221,7 +221,7 @@
 }
 
 .ocr-bubble-actions {
-  margin: 10px 10px 0 10px;
+  margin: 24px 10px 0 10px;
   display: flex;
   gap: 6px;
   flex-wrap: wrap;

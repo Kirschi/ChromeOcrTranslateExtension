@@ -63,8 +63,7 @@ chrome.commands?.onCommand.addListener(async (command) => {
     if (!tab?.id) return;
     try {
       await ensureContent(tab.id);
-      console.log('[OCR SNIP][BG] Sending START_SELECTION to tab', tab.id);
-      chrome.tabs.sendMessage(tab.id, { type: MSG.START_SELECTION });
+      await sendStartSelection(tab.id, tab.url);
     } catch (e) {
       console.warn('Failed to start selection', e);
       console.warn('[OCR SNIP][BG] This can happen if page is a chrome:// page, Web Store, PDF viewer, or permission missing. Current URL:', tab?.url);
@@ -72,6 +71,21 @@ chrome.commands?.onCommand.addListener(async (command) => {
     }
   }
 });
+
+async function sendStartSelection(tabId, url, attempt = 1) {
+  console.log('[OCR SNIP][BG] Sending START_SELECTION to tab', tabId, '(attempt', attempt + ')');
+  try {
+    await chrome.tabs.sendMessage(tabId, { type: MSG.START_SELECTION });
+  } catch (err) {
+    const msg = String(err || 'unknown');
+    if (/Receiving end does not exist/i.test(msg) && attempt < 2) {
+      console.warn('[OCR SNIP][BG] No receiver yet; reinjecting then retrying once');
+      await ensureContent(tabId);
+      return sendStartSelection(tabId, url, attempt + 1);
+    }
+    throw err;
+  }
+}
 
 async function ensureContent(tabId) {
   // Inject modular content scripts in order (dependency order matters)
@@ -98,5 +112,31 @@ async function ensureContent(tabId) {
     throw err;
   }
   console.log('[OCR SNIP][BG] Inserted overlay.css into', tabId);
+
+  // Post-injection verification by running a small probe in the page
+  try {
+    const probe = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: () => {
+        const ns = window.__ocrSnip || {};
+        return {
+          hasConstants: !!ns.constants,
+          hasState: !!ns.state,
+          hasOcr: !!ns.ocr,
+          hasTranslate: !!ns.translate,
+          hasBubble: !!ns.bubble,
+          hasSelection: !!ns.__mainLoaded
+        };
+      }
+    });
+    const result = probe?.[0]?.result;
+    console.log('[OCR SNIP][BG] Post-inject probe', result);
+    const missing = Object.entries(result || {}).filter(([, v]) => !v).map(([k]) => k);
+    if (missing.length) {
+      console.warn('[OCR SNIP][BG] Some modules missing after injection:', missing);
+    }
+  } catch (probeErr) {
+    console.warn('[OCR SNIP][BG] Probe failed', probeErr);
+  }
 }
 
