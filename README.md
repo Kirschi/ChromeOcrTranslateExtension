@@ -1,12 +1,20 @@
 # Chrome OCR Extension
 
-An MV3 Chrome/Edge extension that lets you draw a region on the current page, performs OCR completely online using **Azure AI Vision (Image Analysis / Read)**, then (optionally) sends the recognized text to **Azure Translator**. The recognized or translated text is overlaid inline in a small, movable bubble. Primary focus: Japanese (including vertical manga text) but it works for any language supported by Azure Vision.
+An MV3 Chrome/Edge extension that lets you draw a region on the current page, performs OCR using **Azure AI Vision (Image Analysis / Read)**, then (optionally) sends the recognized text to a translation provider (**Azure Translator** or **Google Translate API**). The recognized or translated text is overlaid inline in a small, movable bubble. Primary focus: Japanese (including vertical manga text) but it works for any language supported by Azure Vision (and translation provider).
+
+This extension is intended for developers or power users. You must provide your own Azure Vision endpoint + key, and (optionally) either an Azure Translator key/endpoint or a Google Cloud Translation API key.
+
+![Snip](assets/screenshots/snip.png)  
+*Snipping*
+
+![Bubble](assets/screenshots/bubble.png)  
+*Result OCR and Translation*
 
 ## Architecture
 
 ```
 User Selection (content script) --> Screenshot (service worker) --> Crop (content script)
-    --> Azure Vision (Read) OCR --> (Optional) Azure Translator --> Overlay Bubble
+    --> Azure Vision (Read) OCR --> (Optional) Azure / Google Translation --> Overlay Bubble
 ```
 
 ## Current Implementation (Scaffold)
@@ -16,10 +24,10 @@ This repository contains a Manifest V3 Chrome extension scaffold that:
 1. Lets you start a region selection (popup button or keyboard shortcut).
 2. Captures a screenshot of the current tab and crops it client‑side to the selected rectangle.
 3. Sends the cropped PNG bytes directly to Azure AI Vision (Image Analysis / Read feature).
-4. Optionally sends the recognized text to Azure Translator (if key + endpoint configured) as a second call.
+4. Optionally sends the recognized text to the selected translation provider (Azure / Google) if configured.
 5. Overlays the (translated or original) text near the selection and stores the last result in sync storage.
 
-## File / Module Structure (Refactored)
+## File / Module Structure
 
 The original single `content/selection.js` script has been decomposed into small modules for clarity and easier maintenance. The orchestrator now only wires the pipeline together (selection → capture → crop → OCR → translate → bubble).
 
@@ -78,9 +86,7 @@ The background script imports `src/messages.js` as an ES module. Content scripts
 |------------|--------|
 | storage    | Persist user configuration & last result |
 | scripting  | Inject content script & CSS on demand for selection |
-| tabs       | Required for `chrome.tabs.captureVisibleTab` screenshot |
-
-`host_permissions` are limited to Azure Translator endpoints (Vision endpoint domain is covered by user-entered HTTPS URL; no blanket wildcard required unless you prefer to add it). There is no local processing path.
+| tabs + activeTab      | Required for `chrome.tabs.captureVisibleTab` screenshot |
 
 If you later implement the OCR entirely in-page (e.g. WebAssembly) and drop screenshot capture, you may be able to remove or reduce some permissions. Thanks to the modular layout, you would mostly swap out `ocr.js` and adjust the orchestrator.
 
@@ -97,14 +103,22 @@ Open the extension's options or visit the popup and click "Settings". Fields:
 Azure AI Vision Section:
 * Azure Vision Endpoint (e.g. `https://<resource>.cognitiveservices.azure.com`).
 * Azure Vision Key.
-* Vision Read Model Version (default `2024-02-29-preview`).
+* Vision Read Model Version (default `latest`).
 
 Translation Section:
-* Azure Translate Endpoint (full URL with query specifying target language) – default uses `to=en`.
-* Azure Translate Key & Region (if required by your Azure resource setup).
-* Auto translate toggle – if disabled, only OCR text is displayed.
+* Translation Provider: `Azure` or `Google`.
+* If Azure selected:
+    * Azure Translate Endpoint (full URL incl. `api-version` & `to=<lang>` query; default targets English).
+    * Azure Translate Key & (optional) Region.
+* If Google selected:
+    * Google Cloud Translation API Key (server key or restricted browser key with Translate permission). Endpoint is implicit.
+* Auto translate toggle – if disabled, only OCR text is displayed (manual translation button still appears if provider configured).
+* Merge lines for translation toggle – when enabled, newline characters from OCR are collapsed before translation.
 
 The last OCR/translation result is stored (shortened) and shown in the popup.
+
+![Options](assets/screenshots/options.png)  
+*Options*
 
 ### Theme Support
 
@@ -115,9 +129,9 @@ The extension supports Light, Dark, or System (automatic) theme selection. Choos
 
 Implementation notes: a `uiTheme` key is stored in `chrome.storage.sync`; when set to `system` a runtime media query resolves to light/dark. Styles rely on CSS custom properties (`--*`) so additional themes (e.g. Sepia, High Contrast) can be added by introducing new data-theme blocks.
 
-## Local / Offline OCR
+## OCR Provider
 
-No local or offline OCR path is included. All OCR occurs against Azure Vision. To add a local provider in the future add a parallel module (e.g. `ocr_local.js`) and branch within `selection.js`.
+Currently only Azure AI Vision (Read) is supported. Adding additional OCR providers (e.g. local WASM models or other cloud APIs) would involve introducing a new `ocr_<provider>.js` module and branching inside `selection.js`.
 
 ## Azure AI Vision OCR (Enforced Mode)
 
@@ -141,7 +155,11 @@ Rate Limits: Be mindful of per-second call limits on your pricing tier; rapid se
 
 Fallback: If Vision key/endpoint are missing the extension displays an error bubble; no alternate provider exists.
 
-## Azure Translation Call
+## Translation Providers
+
+The extension can translate via Azure Translator or Google Cloud Translation API, selected on the options page.
+
+### Azure Translation Call
 
 If auto-translate + key configured, the extension POSTs to the Azure endpoint (e.g.:
 `https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=en`).
@@ -167,6 +185,22 @@ Response (trimmed example):
 ```
 
 If translation fails, the original OCR result is still shown.
+
+### Google Translation Call (When Selected)
+
+When Google is selected and a key is provided, the extension sends the OCR text to the Google Cloud Translation API endpoint:
+
+`POST https://translation.googleapis.com/language/translate/v2`
+
+Headers:
+```
+Content-Type: application/json; charset=UTF-8
+```
+Body (simplified):
+```
+{ "q": "<OCR RESULT>", "target": "en", "format": "text", "source": null, "key": "<GOOGLE_API_KEY>" }
+```
+Note: The current implementation builds the request internally (see `translate.js`). Language target is inferred from the Azure style endpoint query when using Azure, and from configuration / defaults when using Google (future enhancement may surface explicit language select UI). Error behavior matches Azure flow: failure leaves original OCR text intact.
 
 ## How to Load the Extension (Unpacked)
 
@@ -195,9 +229,9 @@ If translation fails, the original OCR result is still shown.
 
 ## Security / Privacy Notes
 
-- Cropped images are sent only to your configured Azure Vision endpoint over HTTPS.
-- Translation text only (no image) is sent to Azure Translator if enabled.
-- No analytics or external calls beyond the configured endpoints.
+* Cropped images are sent only to your configured Azure Vision endpoint over HTTPS.
+* Only text (never images) is sent to the translation provider (Azure or Google) if translation is enabled.
+* No analytics or telemetry; network calls are limited to the user‑configured endpoints plus Google's translation endpoint when that provider is chosen.
 
 ## Troubleshooting
 
@@ -210,8 +244,24 @@ If translation fails, the original OCR result is still shown.
 
 ## License
 
-Add a license file of your choice (MIT recommended) – not included yet.
+MIT License
 
----
+Copyright (c) 2025 Stefan 'Kirschi' Kirchsteiger
 
-This scaffold should get you started quickly; extend it as backend & UI mature.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

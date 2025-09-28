@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Kirschi's OCR + Translate Snipper",
-  "description": "Select a region, OCR via Azure AI Vision, optionally translate via Azure Translator, and overlay the result on the page.",
-  "version": "0.3.2",
+  "description": "Select a region, OCR via Azure AI Vision, overlay the result on the page and optionally translate via Azure Translator or Google Translate.",
+  "version": "0.4.0",
   "action": {
     "default_title": "Kirschi's OCR Snip",
     "default_popup": "popup/popup.html"
@@ -12,11 +12,6 @@
     "scripting",
     "tabs",
     "activeTab"
-  ],
-  "host_permissions": [
-    "https://api.cognitive.microsofttranslator.com/*",
-    "https://*.api.cognitive.microsofttranslator.com/*",
-    "<all_urls>"
   ],
   "background": {
     "service_worker": "background/service_worker.js",

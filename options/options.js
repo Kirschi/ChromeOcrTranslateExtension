@@ -108,7 +108,8 @@ function updateProviderVisibility() {
   }
   if (els.azureTranslateRegion) els.azureTranslateRegion.disabled = useGoogle;
   if (els.googleTranslateApiKey) {
-    els.googleTranslateApiKey.disabled = !useGoogle ? false : false; // always enabled for editing
-    els.googleTranslateApiKey.required = useGoogle; // required when Google active
+    // Disable Google key input when Azure is selected; enable & require only for Google
+    els.googleTranslateApiKey.disabled = !useGoogle;
+    els.googleTranslateApiKey.required = useGoogle;
   }
 }
