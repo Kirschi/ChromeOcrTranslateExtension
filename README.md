@@ -1,8 +1,8 @@
-# Chrome OCR Extension
+# Chrome OCR Translate Extension
 
 An MV3 Chrome/Edge extension that lets you draw a region on the current page, performs OCR using **Azure AI Vision (Image Analysis / Read)**, then (optionally) sends the recognized text to a translation provider (**Azure Translator** or **Google Translate API**). The recognized or translated text is overlaid inline in a small, movable bubble. Primary focus: Japanese (including vertical manga text) but it works for any language supported by Azure Vision (and translation provider). Currently only translates to `en`.
 
-This extension is intended for developers or power users. You must provide your own Azure Vision endpoint + key, and (optionally) either an Azure Translator key/endpoint or a Google Cloud Translation API key.
+This extension is intended for developers or power users. You must provide your own Azure Vision endpoint + key, and (optionally) either an Azure Translator key/endpoint or a Google Cloud Translation API key. This extension will not work without them.
 
 ![Snip](assets/screenshots/snip.png)  
 *Snipping*

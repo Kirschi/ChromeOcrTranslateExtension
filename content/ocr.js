@@ -1,6 +1,22 @@
-// ocr.js - OCR & image cropping helpers
+/**
+ * ocr.js
+ * ------
+ * Image region processing + Azure Vision OCR utilities.
+ * Exports:
+ *  - cropDataUrl(): crop screenshot data URL to selection rectangle (DPR aware)
+ *  - performOcr(): fetch config and run Azure Vision OCR (throws if unconfigured)
+ * Internal helper azureVisionOcr() normalizes differing response shapes across API versions.
+ * Idempotent module guard prevents duplicate definitions on reinjection.
+ */
 (function (ns) {
   if (ns.ocr) return;
+  /**
+   * cropDataUrl
+   * Crop a PNG screenshot data URL to a selection rectangle, scaled for devicePixelRatio.
+   * @param {string} dataUrl Full screenshot (PNG) as data URL.
+   * @param {{left:number,top:number,width:number,height:number}} param1 Selection geometry in CSS px.
+   * @returns {Promise<string>} Cropped region as PNG data URL.
+   */
   async function cropDataUrl(dataUrl, { left, top, width, height }) {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -26,6 +42,12 @@
     });
   }
 
+  /**
+   * performOcr
+   * Validate Azure config presence then delegate to azureVisionOcr.
+   * @param {string} croppedDataUrl PNG data URL of selected region.
+   * @returns {Promise<string>} Recognized multiline text (may be empty string on no content).
+   */
   async function performOcr(croppedDataUrl) {
     const cfg = await ns.getConfig();
     if (!(cfg.azureVisionKey && cfg.azureVisionEndpoint)) throw new Error('Azure Vision not configured (endpoint/key required)');
@@ -33,6 +55,14 @@
     return await azureVisionOcr(croppedDataUrl, cfg);
   }
 
+  /**
+   * azureVisionOcr (internal)
+   * Submit binary image bytes to Azure AI Vision Image Analysis (Read). Attempts multiple fallbacks
+   * to extract lines due to evolving API response schemas.
+   * @param {string} croppedDataUrl PNG data URL of region.
+   * @param {object} cfg Azure related configuration (endpoint, key, model version).
+   * @returns {Promise<string>} Normalized newline-joined string of recognized lines.
+   */
   async function azureVisionOcr(croppedDataUrl, cfg) {
     const endpoint = cfg.azureVisionEndpoint.replace(/\/$/, '');
     const modelParam = cfg.azureVisionReadModel || 'latest';

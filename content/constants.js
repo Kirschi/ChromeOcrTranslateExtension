@@ -1,5 +1,11 @@
-// constants.js - Shared constants for OCR Snipper content scripts
-// Plain script (not ES module) so it can be injected without special manifest requirements.
+/**
+ * constants.js
+ * -------------
+ * Defines message types (MSG) and storage key identifiers (STORAGE_KEYS) used across
+ * content scripts. Implemented as a classic script (not an ES module) so it can be
+ * injected with chrome.scripting.executeScript in MV3 without declaring module type.
+ * The module is idempotent; repeated injections return immediately.
+ */
 (function (ns) {
   if (ns.constants) return; // idempotent
   const MSG = {

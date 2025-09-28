@@ -1,11 +1,30 @@
+/**
+ * Service Worker (Background) Script
+ * ---------------------------------
+ * Responsibilities:
+ *  - Maintain lifecycle events (onInstalled / onStartup) and ensure default configuration is written once.
+ *  - Handle screenshot capture requests from content scripts (CAPTURE_TAB -> TAB_CAPTURED response).
+ *  - Respond to the keyboard command to trigger a new snip by injecting required content modules in order
+ *    and sending a START_SELECTION message.
+ *  - Provide a small probe after injection to log which namespaces loaded (diagnostics only).
+ *  - Avoid holding state between events (stateless design suitable for MV3 ephemeral service workers).
+ *
+ * Security / Privacy Notes:
+ *  - Only current visible tab is captured and only when explicitly requested by user action.
+ *  - No network calls originate here; OCR / translation happen in content scripts.
+ *
+ * Module Injection Order:
+ *  constants -> state -> ocr -> translate -> bubble -> overlay -> selection (orchestrator last)
+ */
 import { MSG, STORAGE_KEYS, DEFAULTS } from '../src/messages.js';
 console.log('[OCR SNIP][BG] Service worker script loaded at', new Date().toISOString());
 
+// onStartup fires when the browser starts (or extension is restarted) — purely informational logging.
 chrome.runtime.onStartup.addListener(() => {
   console.log('[OCR SNIP][BG] onStartup fired (browser start or extension restarted)');
 });
 
-// Ensure defaults exist
+// Ensure defaults exist (run once on install/update). Missing keys are populated, existing user config is preserved.
 chrome.runtime.onInstalled.addListener(() => {
   console.log('[OCR SNIP][BG] onInstalled - ensuring defaults');
   chrome.storage.sync.get(Object.values(STORAGE_KEYS), (vals) => {
@@ -20,6 +39,14 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+/**
+ * captureVisible
+ * Capture the currently active window's visible tab as a PNG data URL.
+ * Note: API does not require explicit tabId param; uses the active view in the current window.
+ * Errors (e.g., on restricted pages) are surfaced via rejection with chrome.runtime.lastError.
+ * @param {number} tabId - The sender tab id (logged for diagnostics only; not passed to capture API).
+ * @returns {Promise<string>} data URL (image/png) of the visible tab.
+ */
 async function captureVisible(tabId) {
   return new Promise((resolve, reject) => {
     chrome.tabs.captureVisibleTab(undefined, { format: 'png' }, (dataUrl) => {
@@ -32,6 +59,7 @@ async function captureVisible(tabId) {
   });
 }
 
+// Message handler (single entry). Only responds to CAPTURE_TAB; other types are ignored for forward compatibility.
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   (async () => {
     switch (message?.type) {
@@ -48,14 +76,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         break;
       }
       default:
-        // no-op
+        // Currently unsupported message type. Intentionally silent.
         break;
     }
   })();
-  return true; // keep port open for async
+  return true; // keep port open for async callback
 });
 
 // Keyboard command to start selection by injecting content script if not yet
+// Keyboard command entrypoint: ensures content modules are present then sends START_SELECTION.
 chrome.commands?.onCommand.addListener(async (command) => {
   if (command === 'trigger-snip') {
     console.log('[OCR SNIP][BG] Keyboard command trigger-snip');
@@ -72,6 +101,14 @@ chrome.commands?.onCommand.addListener(async (command) => {
   }
 });
 
+/**
+ * sendStartSelection
+ * Try to deliver START_SELECTION to the tab. If the content scripts are not yet listening
+ * (Receiving end does not exist) it performs a single reinjection and retries once.
+ * @param {number} tabId - Target tab id
+ * @param {string} url - Tab URL (diagnostic logging only)
+ * @param {number} attempt - Internal recursion counter (max 2 attempts)
+ */
 async function sendStartSelection(tabId, url, attempt = 1) {
   console.log('[OCR SNIP][BG] Sending START_SELECTION to tab', tabId, '(attempt', attempt + ')');
   try {
@@ -87,8 +124,13 @@ async function sendStartSelection(tabId, url, attempt = 1) {
   }
 }
 
+/**
+ * ensureContent
+ * Injects all required content scripts + CSS in dependency order, then runs a probe inside the page
+ * to verify namespaces were established. Logs (does not throw) if some are missing so user flow can continue.
+ * @param {number} tabId - Target tab id for injection
+ */
 async function ensureContent(tabId) {
-  // Inject modular content scripts in order (dependency order matters)
   const files = [
     'content/constants.js',
     'content/state.js',
@@ -96,7 +138,7 @@ async function ensureContent(tabId) {
     'content/translate.js',
     'content/bubble.js',
     'content/overlay.js',
-    'content/selection.js' // orchestrator last
+    'content/selection.js'
   ];
   try {
     await chrome.scripting.executeScript({ target: { tabId }, files });
@@ -113,7 +155,6 @@ async function ensureContent(tabId) {
   }
   console.log('[OCR SNIP][BG] Inserted overlay.css into', tabId);
 
-  // Post-injection verification by running a small probe in the page
   try {
     const probe = await chrome.scripting.executeScript({
       target: { tabId },

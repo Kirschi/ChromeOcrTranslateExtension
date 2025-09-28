@@ -1,7 +1,15 @@
+/**
+ * options.js
+ * ----------
+ * Implements the extension's options page logic: loading current configuration from
+ * chrome.storage.sync, populating form fields, handling provider-specific visibility,
+ * saving user edits, and applying a live theme preview.
+ */
 import { STORAGE_KEYS, DEFAULTS } from '../src/messages.js';
 
 const els = {};
 
+// Bootstrap once DOM is ready: cache element refs, load config, attach listeners.
 document.addEventListener('DOMContentLoaded', () => {
   console.log('[OCR SNIP][OPTIONS] DOMContentLoaded');
   els.form = document.getElementById('settingsForm');
@@ -31,6 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+/**
+ * load
+ * Retrieve all sync storage values and populate the form, supplying defaults for missing keys.
+ */
 function load() {
   console.log('[OCR SNIP][OPTIONS] Loading config');
   chrome.storage.sync.get(null, (vals) => {
@@ -63,6 +75,11 @@ function load() {
   });
 }
 
+/**
+ * onSave
+ * Persist current form field values back to chrome.storage.sync.
+ * @param {SubmitEvent} e Form submit event.
+ */
 function onSave(e) {
   e.preventDefault();
   console.log('[OCR SNIP][OPTIONS] Saving settings');
@@ -87,6 +104,11 @@ function onSave(e) {
 
 // Provider toggle removed: Azure Vision enforced.
 
+/**
+ * applyPreviewTheme
+ * Apply selected theme or resolve system theme; updates root dataset for CSS variables.
+ * @param {string} choice 'system' | 'light' | 'dark'
+ */
 function applyPreviewTheme(choice) {
   let theme = choice;
   if (theme === 'system') {
@@ -96,6 +118,10 @@ function applyPreviewTheme(choice) {
   document.documentElement.dataset.theme = theme;
 }
 
+/**
+ * updateProviderVisibility
+ * Enable/disable Azure vs Google translation input fields based on selected provider.
+ */
 function updateProviderVisibility() {
   if (!els.translationProvider) return;
   const provider = els.translationProvider.value;

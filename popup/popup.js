@@ -1,6 +1,16 @@
+/**
+ * popup.js
+ * --------
+ * Logic for the browser action popup: triggers new selection, shows last OCR/translation
+ * snippet, displays current shortcut, and links to options page.
+ */
 import { MSG, STORAGE_KEYS } from '../src/messages.js';
 console.log('[OCR SNIP][POPUP] Script evaluated (popup opened) timestamp', Date.now());
 
+/**
+ * init
+ * Initialize popup UI: theme, shortcut text, event handlers, and last result preview.
+ */
 async function init() {
   console.log('[OCR SNIP][POPUP] init');
   applyTheme();
@@ -14,6 +24,10 @@ async function init() {
   loadLast();
 }
 
+/**
+ * startSelection
+ * Inject selection orchestrator assets (idempotent) and send START_SELECTION to active tab.
+ */
 async function startSelection() {
   console.log('[OCR SNIP][POPUP] Start selection clicked');
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -29,6 +43,10 @@ async function startSelection() {
   window.close();
 }
 
+/**
+ * loadLast
+ * Fetch last OCR/translation result from sync storage (if any) and render trimmed preview.
+ */
 function loadLast() {
   console.log('[OCR SNIP][POPUP] Loading last result');
   chrome.storage.sync.get(STORAGE_KEYS.LAST_RESULT, (vals) => {
@@ -41,6 +59,10 @@ function loadLast() {
 
 document.addEventListener('DOMContentLoaded', init);
 
+/**
+ * applyTheme
+ * Resolve theme (system aware) and assign dataset attribute for styling.
+ */
 function applyTheme() {
   chrome.storage.sync.get(['uiTheme'], (vals) => {
     let choice = vals.uiTheme || 'system';
@@ -52,6 +74,10 @@ function applyTheme() {
   });
 }
 
+/**
+ * updateShortcutDisplay
+ * Query command list and show active shortcut mapping for trigger-snip.
+ */
 function updateShortcutDisplay() {
   const el = document.getElementById('shortcutDisplay');
   if (!el) return;

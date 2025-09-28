@@ -1,14 +1,37 @@
-// bubble.js - Result bubble UI utilities
+/**
+ * bubble.js
+ * ---------
+ * Creates and manages the floating result bubble displaying OCR text and (optional) translation.
+ * Exports:
+ *  - showBubble(): render bubble at coordinates (or reuse last position) with initial text.
+ *  - removeBubble(): remove existing bubble element.
+ *  - addActionButtons(): append translation buttons & external link, wiring manual translation.
+ * Includes drag support (mouse + basic touch) and position persistence across repeat snips.
+ */
 (function (ns) {
   if (ns.bubble) return;
   const { STORAGE_KEYS } = ns.constants;
   const state = ns.state;
 
+  /**
+   * removeBubble
+   * Destroy any existing bubble element and clear state reference.
+   */
   function removeBubble() {
     if (state.bubbleEl?.parentNode) state.bubbleEl.parentNode.removeChild(state.bubbleEl);
     state.bubbleEl = null;
   }
 
+  /**
+   * showBubble
+   * Render the bubble UI with OCR or status text. Replaces previous bubble if present.
+   * @param {string} text Initial text to display (may be status or OCR content).
+   * @param {number|string} x Left coordinate (or '__reuse' sentinel to restore last position).
+   * @param {number|string} y Top coordinate (or '__reuse').
+   * @param {string|null} lang Optional label (e.g., 'OCR', 'Error').
+   * @param {boolean} isError Apply error styling.
+   * @param {{spinner?:boolean}} opts Spinner flag for in-progress states.
+   */
   function showBubble(text, x, y, lang, isError = false, { spinner = false } = {}) {
     removeBubble();
     const bubble = document.createElement('div');
@@ -156,6 +179,15 @@
     })();
   }
 
+  /**
+   * addActionButtons
+   * Append translation related action buttons to existing bubble. Supports manual translate
+   * (with memoization) and shortcut link to Google Translate web UI.
+   * @param {object} param0 Options bag.
+   * @param {boolean} param0.showTranslate Whether to include manual translate button.
+   * @param {string} param0.originalText OCR text used for external link.
+   * @param {string|null} param0.preFetchedTranslation Optional already obtained translation.
+   */
   async function addActionButtons({ showTranslate, originalText, preFetchedTranslation = null }) {
     if (!state.bubbleEl) return;
     const actions = state.bubbleEl.querySelector('.ocr-bubble-actions');

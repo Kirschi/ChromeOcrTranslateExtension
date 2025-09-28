@@ -1,3 +1,12 @@
+/**
+ * messages.js
+ * -----------
+ * Shared constants used by the background (ES module context) and popup/options pages.
+ * Duplicated (conceptually) by a classic-script version in content (`content/constants.js`)
+ * to avoid converting all content scripts to ES modules immediately. Unified import could
+ * be adopted later by using `type: module` for content scripts in the manifest.
+ */
+// Message type constants exchanged via chrome.runtime messaging layer.
 export const MSG = {
   START_SELECTION: 'START_SELECTION',
   CAPTURE_TAB: 'CAPTURE_TAB',
@@ -9,6 +18,7 @@ export const MSG = {
   ERROR: 'ERROR'
 };
 
+// Storage key identifiers (sync storage). See DEFAULTS for initial values.
 export const STORAGE_KEYS = {
   AZURE_VISION_ENDPOINT: 'azureVisionEndpoint',
   AZURE_VISION_KEY: 'azureVisionKey',
@@ -24,6 +34,7 @@ export const STORAGE_KEYS = {
   IGNORE_NEWLINES: 'ignoreNewlines'
 };
 
+// DEFAULTS: initial configuration values written on install for any missing keys.
 export const DEFAULTS = {
   azureVisionEndpoint: '',
   azureVisionKey: '',

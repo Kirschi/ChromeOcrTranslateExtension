@@ -1,4 +1,13 @@
-// state.js - Shared mutable state & configuration helpers
+/**
+ * state.js
+ * --------
+ * Shared mutable UI + runtime state for the injected content environment.
+ * Exposes:
+ *  - state: ephemeral selection + bubble positioning data.
+ *  - getConfig(): loads user configuration values from chrome.storage.sync (async).
+ *  - applyTheme(): applies resolved theme (system|light|dark) to overlay root and document.
+ * Idempotent so re‑injection will not overwrite existing state object.
+ */
 (function (ns) {
   if (ns.state) return;
   const state = {
@@ -11,6 +20,11 @@
     lastBubblePos: null
   };
 
+  /**
+   * getConfig
+   * Resolve current configuration values from chrome.storage.sync, supplying defaults for missing entries.
+   * @returns {Promise<object>} configuration object consumed by OCR / translation flows.
+   */
   function getConfig() {
     const { STORAGE_KEYS } = ns.constants;
     return new Promise((resolve) => {
@@ -31,6 +45,12 @@
     });
   }
 
+  /**
+   * applyTheme
+   * Determine effective theme. For 'system', queries prefers-color-scheme. Sets dataset attributes
+   * used by CSS to style overlay + bubble.
+   * @param {HTMLElement} rootEl Root overlay element receiving data-theme attribute.
+   */
   function applyTheme(rootEl) {
     const { STORAGE_KEYS } = ns.constants;
     try {

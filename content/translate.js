@@ -1,17 +1,46 @@
-// translate.js - Translation related functions
+/**
+ * translate.js
+ * ------------
+ * Provides translation helpers wrapping Azure Translator or Google Cloud Translation APIs.
+ * Exports:
+ *  - maybeTranslate(): auto-translate only when enabled in configuration.
+ *  - forceTranslate(): manual translation disregarding auto setting.
+ * Internal performTranslate() applies newline collapsing (optional) and picks provider.
+ * All errors return null unless manual invocation, where they are logged for UX feedback.
+ */
 (function (ns) {
   if (ns.translate) return;
+  /**
+   * maybeTranslate
+   * Attempt translation only if autoTranslate is true in config.
+   * @param {string} text Source OCR text.
+   * @returns {Promise<string|null>} Translation or null (disabled / unavailable).
+   */
   async function maybeTranslate(text) {
     const cfg = await ns.getConfig();
     if (!cfg.autoTranslate) return null;
     return await performTranslate(cfg, text, false);
   }
 
+  /**
+   * forceTranslate
+   * Always attempt translation (manual action). Ignores autoTranslate flag.
+   * @param {string} text Source text.
+   * @returns {Promise<string|null>} Translation or null on failure.
+   */
   async function forceTranslate(text) {
     const cfg = await ns.getConfig();
     return await performTranslate(cfg, text, true);
   }
 
+  /**
+   * performTranslate (internal)
+   * Execute provider-specific fetch. Swallows most errors; logs when isManual = true.
+   * @param {object} cfg Resolved configuration.
+   * @param {string} text Source text (possibly newline-collapsed).
+   * @param {boolean} isManual Indicates manual vs auto invocation (affects logging severity).
+   * @returns {Promise<string|null>} Translation or null.
+   */
   async function performTranslate(cfg, text, isManual) {
     try {
       const provider = cfg.translationProvider || 'azure';

@@ -1,4 +1,12 @@
-// selection.js - Orchestrator / entrypoint after modular refactor
+/**
+ * selection.js
+ * ------------
+ * Orchestrates the full pipeline once a user finishes drawing a selection:
+ *  capture -> crop -> OCR -> (optional) translate -> display bubble + actions.
+ * Handles START_SELECTION messages and exposes a window.__startOcrSelection helper for repeat
+ * snips triggered inside the page (e.g., from the bubble repeat button). Idempotent guard ensures
+ * only one orchestrator attaches listeners.
+ */
 (function (ns) {
   if (ns.__mainLoaded) return; // idempotent guard
   ns.__mainLoaded = true;
@@ -7,6 +15,12 @@
   const { showBubble, addActionButtons } = ns.bubble;
   const { cropDataUrl, performOcr } = ns.ocr; // cropDataUrl currently internal use (could be exposed if needed)
 
+  /**
+   * handleSelection
+   * Execute the ordered OCR pipeline for given selection rectangle and manage user feedback.
+   * Logs timing breakdown for performance visibility.
+   * @param {{left:number,top:number,width:number,height:number}} selection Bounding rectangle in CSS px.
+   */
   async function handleSelection(selection) {
     const t0 = performance.now();
     console.log('[OCR SNIP] Requesting tab capture');
