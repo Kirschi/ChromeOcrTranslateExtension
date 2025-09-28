@@ -2,7 +2,7 @@
 
 An MV3 Chrome/Edge extension that lets you draw a region on the current page, performs OCR using **Azure AI Vision (Image Analysis / Read)**, then (optionally) sends the recognized text to a translation provider (**Azure Translator** or **Google Translate API**). The recognized or translated text is overlaid inline in a small, movable bubble. Primary focus: Japanese (including vertical manga text) but it works for any language supported by Azure Vision (and translation provider). Currently only translates to `en`.
 
-This extension is intended for developers or power users. You must provide your own Azure Vision endpoint + key, and (optionally) either an Azure Translator key/endpoint or a Google Cloud Translation API key. This extension will not work without them.
+**This extension is intended for developers or power users.** You must provide your own Azure Vision endpoint + key, and (optionally) either an Azure Translator key/endpoint or a Google Cloud Translation API key. This extension will not work without them.
 
 ![Snip](assets/screenshots/snip.png)  
 *Snipping*
@@ -29,7 +29,7 @@ This repository contains a Manifest V3 Chrome extension scaffold that:
 
 ## File / Module Structure
 
-The original single `content/selection.js` script has been decomposed into small modules for clarity and easier maintenance. The orchestrator now only wires the pipeline together (selection → capture → crop → OCR → translate → bubble).
+The orchestrator (`selection.js`) wires the pipeline together (selection → capture → crop → OCR → translate → bubble).
 
 ```
 manifest.json
@@ -88,7 +88,6 @@ The background script imports `src/messages.js` as an ES module. Content scripts
 | scripting  | Inject content script & CSS on demand for selection |
 | tabs + activeTab      | Required for `chrome.tabs.captureVisibleTab` screenshot |
 
-If you later implement the OCR entirely in-page (e.g. WebAssembly) and drop screenshot capture, you may be able to remove or reduce some permissions. Thanks to the modular layout, you would mostly swap out `ocr.js` and adjust the orchestrator.
 
 ## Keyboard Shortcut
 
@@ -220,11 +219,7 @@ Note: The current implementation builds the request internally (see `translate.j
 
 ## Code Style
 
-The codebase follows One True Brace Style (1TBS):
-- Opening brace on the same line as the control statement (`if (cond) {`).
-- `else / catch / finally` on the same line as the preceding closing brace (`} else {`).
-- Braces are mandatory even for single-line bodies (no `if (x) return;`).
-- Early returns always occupy their own braced block for safer future edits / diffs.
+The codebase follows One True Brace Style (1TBS).
 
 
 ## Customization Ideas / Next Steps
@@ -275,6 +270,10 @@ Thanks to AI coding assistants (GitHub Copilot and similar tools) for developmen
 This project is an independent, community-created extension. It is **not** affiliated with, endorsed by, or sponsored by Microsoft, Google, or the Chromium project. 
 
 "Azure", "Azure AI Vision", "Azure Translator" are trademarks or registered trademarks of Microsoft Corporation. "Google Cloud", "Google Translate", and the Google logo are trademarks of Google LLC. "Chrome" and the Chromium logo are trademarks of Google LLC. All other trademarks are the property of their respective owners. Use of the APIs and services referenced is subject to their own terms.
+
+## Author
+
+Stefan 'Kirschi' Kirchsteiger
 
 ## License
 

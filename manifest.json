@@ -7,6 +7,7 @@
     "default_title": "Kirschi's OCR Snip",
     "default_popup": "popup/popup.html"
   },
+  "homepage_url": "https://github.com/Kirschi/ChromeOcrTranslateExtension",
   "permissions": [
     "storage",
     "scripting",
